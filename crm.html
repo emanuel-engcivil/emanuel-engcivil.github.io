@@ -6,13 +6,13 @@
 <title>EF · CRM Estrutural</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg:#080c1a; --surface:#0d1225; --surface2:#111830;
-  --border:#1a2040; --border2:#222b4a;
-  --accent:#E85D20; --accent2:#c44d18; --accent-glow:rgba(232,93,32,.15);
-  --text:#f0ede8; --muted:#5a6080; --muted2:#8892aa;
-  --success:#2dd4a0; --warning:#f5a623; --danger:#e05252; --info:#4a9eff;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080c1a;--surface:#0d1225;--surface2:#111830;
+  --border:#1a2040;--border2:#222b4a;
+  --accent:#E85D20;--accent2:#c44d18;--accent-glow:rgba(232,93,32,.15);
+  --text:#f0ede8;--muted:#5a6080;--muted2:#8892aa;
+  --success:#2dd4a0;--warning:#f5a623;--danger:#e05252;--info:#4a9eff;
   --sidebar-w:220px;
 }
 html,body{height:100%;overflow:hidden;}
@@ -20,8 +20,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,#ffffff03 39px,#ffffff03 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,#ffffff03 39px,#ffffff03 40px);pointer-events:none;z-index:0;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
+/* LOADING */
+#loadingScreen{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:16px;}
+.loading-logo{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:.06em;}
+.loading-logo span{color:var(--accent);}
+.loading-spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+.loading-msg{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
 /* LOGIN */
-#loginScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+#loginScreen{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:var(--bg);}
+#loginScreen.visible{display:flex;}
 .login-box{width:380px;padding:48px 40px;border:1px solid var(--border2);background:var(--surface);position:relative;animation:fadeUp .5s ease forwards;}
 .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
 .login-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;margin-bottom:4px;}
@@ -31,9 +40,10 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .login-field label{display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
 .login-field input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;outline:none;transition:border-color .2s;}
 .login-field input:focus{border-color:var(--accent);}
-.login-error{font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;margin-bottom:16px;display:none;}
+.login-error{font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;margin-bottom:16px;display:none;min-height:18px;}
 .btn-login{width:100%;background:var(--accent);color:#000;border:none;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;cursor:pointer;transition:background .2s;margin-top:8px;}
 .btn-login:hover{background:var(--accent2);}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;}
 
 /* APP */
 #app{display:none;height:100vh;position:relative;z-index:1;}
@@ -57,7 +67,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .nav-badge{margin-left:auto;background:var(--accent);color:#000;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;}
 .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);}
 .sidebar-user{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.user-avatar{width:32px;height:32px;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;flex-shrink:0;}
+.user-avatar{width:32px;height:32px;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;flex-shrink:0;border-radius:50%;}
 .user-name{font-size:12px;font-weight:500;color:var(--text);}
 .user-role{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
 .btn-logout{width:100%;background:none;border:1px solid var(--border2);color:var(--muted);padding:7px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
@@ -68,7 +78,7 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .topbar{height:56px;min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;background:var(--surface);}
 .topbar-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;}
 .topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.content{flex:1;overflow-y:auto;padding:28px;position:relative;}
+.content{flex:1;overflow-y:auto;padding:28px;}
 
 /* TABS */
 .tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;}
@@ -102,12 +112,14 @@ body::before{content:'';position:fixed;inset:0;background-image:repeating-linear
 .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.06em;text-transform:uppercase;font-weight:500;border-radius:2px;}
 .tag-novo{background:rgba(74,158,255,.15);color:#4a9eff;}
 .tag-contato{background:rgba(245,166,35,.15);color:#f5a623;}
-.tag-negoc{background:rgba(232,93,32,.15);color:var(--accent);}
+.tag-negociacao{background:rgba(232,93,32,.15);color:var(--accent);}
 .tag-proposta{background:rgba(138,87,235,.15);color:#8a57eb;}
 .tag-fechado{background:rgba(45,212,160,.15);color:var(--success);}
 .tag-perdido{background:rgba(224,82,82,.15);color:var(--danger);}
 .tag-form{background:rgba(74,158,255,.1);color:#4a9eff;}
 .tag-manual{background:rgba(245,166,35,.1);color:var(--warning);}
+.tag-admin{background:rgba(232,93,32,.15);color:var(--accent);}
+.tag-user{background:rgba(74,158,255,.1);color:#4a9eff;}
 
 /* TABLE */
 .table-wrap{overflow-x:auto;}
@@ -148,7 +160,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
 .modal-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;transition:color .2s;}
 .modal-close:hover{color:var(--text);}
 .modal-body{padding:0 24px 24px;}
-.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .f-group{margin-bottom:16px;}
 .f-group label{display:block;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:7px;}
@@ -175,7 +187,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
 
 /* TIMELINE */
 .timeline{display:flex;flex-direction:column;gap:10px;}
-.timeline-item{display:flex;gap:12px;position:relative;}
+.timeline-item{display:flex;gap:12px;}
 .timeline-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;margin-top:5px;flex-shrink:0;position:relative;z-index:1;}
 .timeline-item:not(:last-child) .timeline-dot::after{content:'';position:absolute;top:10px;left:3px;width:1px;height:calc(100% + 12px);background:var(--border2);}
 .timeline-date{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:2px;}
@@ -190,8 +202,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
 .bar-count{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);width:30px;flex-shrink:0;}
 
 /* AGENDA */
-.agenda-item{padding:14px 16px;border:1px solid var(--border);background:var(--surface2);margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;transition:border-color .2s;}
-.agenda-item:hover{border-color:var(--border2);}
+.agenda-item{padding:14px 16px;border:1px solid var(--border);background:var(--surface2);margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;}
 .agenda-date-box{width:48px;text-align:center;flex-shrink:0;}
 .agenda-day{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;}
 .agenda-month{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
@@ -200,7 +211,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
 .agenda-item.hoje{border-color:rgba(232,93,32,.3);}
 
 /* CLIENT ROW */
-.client-row{background:var(--surface2);border:1px solid var(--border);padding:16px 20px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;display:flex;align-items:center;gap:16px;}
+.client-row{background:var(--surface2);border:1px solid var(--border);padding:16px 20px;margin-bottom:8px;display:flex;align-items:center;gap:16px;transition:border-color .2s;}
 .client-row:hover{border-color:var(--border2);}
 
 /* PROJ CARD */
@@ -212,8 +223,14 @@ tbody td.bold{color:var(--text);font-weight:500;}
 .nota-input{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s;}
 .nota-input:focus{border-color:var(--accent);}
 
-/* OTHER */
+/* STATUS SELECT */
 .status-select{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none;cursor:pointer;letter-spacing:.06em;}
+
+/* USER CARD */
+.user-card{background:var(--surface2);border:1px solid var(--border);padding:16px 20px;margin-bottom:8px;display:flex;align-items:center;gap:14px;}
+.user-card-avatar{width:36px;height:36px;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;flex-shrink:0;border-radius:50%;}
+
+/* OTHER */
 .unread-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
 .empty-state-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
@@ -221,6 +238,10 @@ tbody td.bold{color:var(--text);font-weight:500;}
 .cfg-row:last-child{border-bottom:none;}
 .cfg-key{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
 .cfg-val{font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;}
+.sync-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--success);}
+.sync-dot.syncing{background:var(--warning);animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.info-box{background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2);padding:12px 14px;font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;line-height:1.6;margin-bottom:16px;}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .page{animation:fadeUp .3s ease forwards;}
@@ -228,15 +249,23 @@ tbody td.bold{color:var(--text);font-weight:500;}
 </head>
 <body>
 
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="loading-logo">EF<span>·</span>CRM</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loadingMsg">Conectando...</div>
+</div>
+
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">EF<span>·</span>CRM</div>
     <div class="login-sub">Gestão Estrutural</div>
-    <div class="login-field"><label>Usuário</label><input type="text" id="loginUser" placeholder="usuario" autocomplete="username"></div>
+    <div class="login-field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email"></div>
     <div class="login-field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
-    <div class="login-error" id="loginError">Usuário ou senha incorretos.</div>
+    <div class="login-error" id="loginError"></div>
     <button class="btn-login" id="loginBtn">ENTRAR →</button>
+    <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Acesso restrito a usuários autorizados</div>
   </div>
 </div>
 
@@ -267,8 +296,11 @@ tbody td.bold{color:var(--text);font-weight:500;}
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><path d="M1 6h14"/><path d="M5 1v3M11 1v3" stroke-linecap="round"/></svg>Agenda
         </div>
       </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Sistema</div>
+      <div class="nav-section" id="adminNav" style="display:none">
+        <div class="nav-section-label">Administração</div>
+        <div class="nav-item" data-page="usuarios">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M15 13c0-2-1-3.5-3-4"/></svg>Usuários
+        </div>
         <div class="nav-item" data-page="configuracoes">
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42"/></svg>Configurações
         </div>
@@ -276,8 +308,11 @@ tbody td.bold{color:var(--text);font-weight:500;}
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="user-avatar">E</div>
-        <div><div class="user-name">Emanuel Freire</div><div class="user-role">Eng. Estrutural</div></div>
+        <div class="user-avatar" id="sidebarAvatar">E</div>
+        <div>
+          <div class="user-name" id="sidebarName">Carregando...</div>
+          <div class="user-role" id="sidebarRole">—</div>
+        </div>
       </div>
       <button class="btn-logout" id="logoutBtn">Sair</button>
     </div>
@@ -285,13 +320,17 @@ tbody td.bold{color:var(--text);font-weight:500;}
   <div class="main">
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:16px">
+        <span class="sync-dot" id="syncDot"></span>
+        <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace" id="syncMsg">online</span>
+      </div>
       <div class="topbar-actions" id="topbarActions"></div>
     </div>
     <div class="content" id="mainContent"></div>
   </div>
 </div>
 
-<!-- PANEL OVERLAY + PANEL -->
+<!-- PANEL -->
 <div class="panel-overlay" id="panelOverlay"></div>
 <div class="slide-panel" id="slidePanel">
   <div class="panel-header">
@@ -312,9 +351,9 @@ tbody td.bold{color:var(--text);font-weight:500;}
       </div>
       <div class="f-row">
         <div class="f-group"><label>Você é <span class="req">*</span></label>
-          <select id="fl-tipo"><option value="">Selecione...</option><option value="arquiteto">Arquiteto(a)</option><option value="construtora">Construtora / Incorporadora</option><option value="proprietario">Proprietário / Pessoa Física</option><option value="outro">Outro</option></select></div>
+          <select id="fl-tipo"><option value="">Selecione...</option><option value="arquiteto">Arquiteto(a)</option><option value="construtora">Construtora/Incorporadora</option><option value="proprietario">Proprietário/Pessoa Física</option><option value="outro">Outro</option></select></div>
         <div class="f-group"><label>Serviço <span class="req">*</span></label>
-          <select id="fl-servico"><option value="">Selecione...</option><option value="projeto_completo">Projeto Estrutural Completo</option><option value="revisao">Revisão de Projeto</option><option value="consultoria">Consultoria / Laudo</option><option value="acompanhamento">Acompanhamento de Obra</option></select></div>
+          <select id="fl-servico"><option value="">Selecione...</option><option value="projeto_completo">Projeto Estrutural Completo</option><option value="revisao">Revisão de Projeto</option><option value="consultoria">Consultoria/Laudo</option><option value="acompanhamento">Acompanhamento de Obra</option></select></div>
       </div>
       <div class="f-row">
         <div class="f-group"><label>Tipologia <span class="req">*</span></label>
@@ -360,8 +399,8 @@ tbody td.bold{color:var(--text);font-weight:500;}
       <button class="btn btn-ghost" data-close="modalCliente">Cancelar</button>
       <button class="btn btn-primary" id="saveClienteBtn">SALVAR</button>
     </div>
-    <div id="confirmDeleteBox" style="display:none;background:rgba(224,82,82,.1);border:1px solid var(--danger);padding:14px 24px;margin:0">
-      <div style="font-size:13px;color:var(--text);margin-bottom:12px">⚠ Tem certeza que deseja remover este cliente? Esta ação não pode ser desfeita.</div>
+    <div id="confirmDeleteBox" style="display:none;background:rgba(224,82,82,.1);border:1px solid var(--danger);padding:14px 24px;">
+      <div style="font-size:13px;color:var(--text);margin-bottom:12px">⚠ Tem certeza? Esta ação não pode ser desfeita.</div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-danger btn-sm" id="confirmDeleteYes">Sim, remover</button>
         <button class="btn btn-ghost btn-sm" onclick="cancelConfirmDelete()">Não, cancelar</button>
@@ -377,7 +416,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
     <div class="modal-body">
       <div class="f-group"><label>Cliente <span class="req">*</span></label><select id="fp-clienteId"><option value="">Selecione um cliente...</option></select></div>
       <div class="f-row">
-        <div class="f-group"><label>Descrição do projeto <span class="req">*</span></label><input type="text" id="fp-descricao" placeholder="Ex: Proj. Estrutural – Casa 180m²"></div>
+        <div class="f-group"><label>Descrição <span class="req">*</span></label><input type="text" id="fp-descricao" placeholder="Ex: Proj. Estrutural – Casa 180m²"></div>
         <div class="f-group"><label>Serviço</label>
           <select id="fp-servico"><option value="">Selecione...</option><option value="projeto_completo">Projeto Estrutural Completo</option><option value="revisao">Revisão de Projeto</option><option value="consultoria">Consultoria/Laudo</option><option value="acompanhamento">Acompanhamento de Obra</option></select></div>
       </div>
@@ -411,25 +450,47 @@ tbody td.bold{color:var(--text);font-weight:500;}
   </div>
 </div>
 
-<!-- MODAL CONFIG -->
-<div class="modal-overlay" id="modalConfig">
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modalUsuario">
   <div class="modal">
-    <div class="modal-header"><div class="modal-title">ALTERAR CREDENCIAIS</div><button class="modal-close" data-close="modalConfig">✕</button></div>
+    <div class="modal-header"><div class="modal-title" id="modalUsuarioTitle">NOVO USUÁRIO</div><button class="modal-close" data-close="modalUsuario">✕</button></div>
     <div class="modal-body">
-      <div style="background:var(--bg);border:1px solid var(--border2);padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;line-height:1.6;">⚠ Confirme sua senha atual para fazer alterações.</div>
-      <div class="f-group"><label>Senha atual <span class="req">*</span></label><input type="password" id="cfg-senhaAtual" placeholder="••••••••"></div>
-      <div style="height:1px;background:var(--border);margin:20px 0"></div>
-      <div class="f-group"><label>Novo usuário</label><input type="text" id="cfg-novoUser" placeholder="Deixe em branco para não alterar" autocomplete="off"></div>
-      <div class="f-group"><label>Nova senha</label><input type="password" id="cfg-novaSenha" placeholder="Deixe em branco para não alterar"></div>
-      <div class="f-group"><label>Confirmar nova senha</label><input type="password" id="cfg-confirmaSenha"></div>
-      <div id="cfgError" style="font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;display:none;margin-top:-4px"></div>
-      <div id="cfgSuccess" style="font-size:12px;color:var(--success);font-family:'DM Mono',monospace;display:none;margin-top:-4px"></div>
+      <div class="info-box">ℹ O usuário receberá acesso ao CRM com o e-mail e senha definidos abaixo. Somente administradores podem criar e gerenciar usuários.</div>
+      <div class="f-row">
+        <div class="f-group"><label>Nome <span class="req">*</span></label><input type="text" id="fu-nome" placeholder="Nome completo"></div>
+        <div class="f-group"><label>E-mail <span class="req">*</span></label><input type="email" id="fu-email" placeholder="email@exemplo.com"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label>Senha <span class="req">*</span></label><input type="password" id="fu-senha" placeholder="Mínimo 6 caracteres"></div>
+        <div class="f-group"><label>Perfil</label>
+          <select id="fu-role"><option value="user">Usuário (acesso normal)</option><option value="admin">Administrador (acesso total)</option></select></div>
+      </div>
+      <div id="usuarioError" style="font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;display:none;margin-top:-8px"></div>
+      <div id="usuarioSuccess" style="font-size:12px;color:var(--success);font-family:'DM Mono',monospace;display:none;margin-top:-8px"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalConfig">Cancelar</button><button class="btn btn-primary" id="saveCfgBtn">SALVAR ALTERAÇÕES</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" data-close="modalUsuario">Cancelar</button><button class="btn btn-primary" id="saveUsuarioBtn">CRIAR USUÁRIO</button></div>
   </div>
 </div>
 
-<script>
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ════════ CONFIG FIREBASE ════════
+const firebaseConfig = {
+  apiKey: "AIzaSyC65-p-s1F6wKMRo5Kc05vHlk2KyP9IkqE",
+  authDomain: "ef-crm-d78da.firebaseapp.com",
+  projectId: "ef-crm-d78da",
+  storageBucket: "ef-crm-d78da.firebasestorage.app",
+  messagingSenderId: "648795539910",
+  appId: "1:648795539910:web:4fc50161a83b03db114ac7"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 // ════════ LABELS ════════
 const L = {
   tipo:{arquiteto:'Arquiteto(a)',construtora:'Construtora/Incorporadora',proprietario:'Proprietário/Pessoa Física',outro:'Outro'},
@@ -445,97 +506,198 @@ const L = {
 const PROJ_COLORS = {elaboracao:'var(--accent)',aguardando:'var(--warning)',entregue:'var(--success)',cancelado:'var(--danger)'};
 function lbl(map,key){return(L[map]&&L[map][key])?L[map][key]:(key||'—');}
 
-// ════════ STORAGE ════════
-function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
-function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+// ════════ ESTADO GLOBAL ════════
+let currentUser = null;
+let currentUserData = null;
+let currentPage = 'dashboard';
+let dashTab = 'leads';
+let dashPeriod = 30;
+let lf = {tipo:'',status:'',busca:''};
+let pjFiltro = '';
 
-// ════════ SEED ════════
-function seedIfEmpty(){
-  if(load('efcrm_leads',null))return;
-  const now=new Date();
-  const ago=n=>{const x=new Date(now);x.setDate(x.getDate()-n);return x.toISOString();};
-  const fut=n=>{const x=new Date(now);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
-  const tod=now.toISOString().slice(0,10);
-  const c1=uid(),c2=uid();
-  save('efcrm_leads',[
-    {id:uid(),origem:'formulario',status:'negociacao',lido:false,nome:'Marcos Vinicius Alves',whatsapp:'(88) 99201-3344',tipo:'arquiteto',servico:'projeto_completo',tipologia:'residencial_unifamiliar',area:'100a300',cidade:'Russas – CE',prazo:'normal',tem_arq:'sim',como_conheceu:'instagram',descricao:'Casa térrea com laje, 3 quartos, terreno em declive.',data:ago(5),historico:[{data:ago(4),texto:'Primeiro contato feito.'},{data:ago(2),texto:'Proposta enviada por e-mail.'}],anotacoes:'Orçamento R$ 4.800.'},
-    {id:uid(),origem:'formulario',status:'novo',lido:false,nome:'Construtora Horizonte Ltda',whatsapp:'(85) 98800-1234',tipo:'construtora',servico:'projeto_completo',tipologia:'residencial_multifamiliar',area:'acima600',cidade:'Fortaleza – CE',prazo:'normal',tem_arq:'sim',como_conheceu:'indicacao',descricao:'Prédio residencial 8 pavimentos.',data:ago(1),historico:[],anotacoes:''},
-    {id:uid(),origem:'manual',status:'proposta',lido:true,nome:'Fernanda Costa Lima',whatsapp:'(88) 91234-5678',tipo:'proprietario',servico:'consultoria',tipologia:'reforma',area:'ate100',cidade:'Morada Nova – CE',prazo:'urgente',tem_arq:'nao',como_conheceu:'tiktok',descricao:'Trinca na viga da sala.',data:ago(12),historico:[{data:ago(10),texto:'Visita técnica agendada.'},{data:ago(7),texto:'Laudo enviado. Proposta de R$ 1.200.'}],anotacoes:'Aguardando aprovação.'}
-  ]);
-  save('efcrm_clientes',[
-    {id:c1,nome:'Arq. João Batista',whatsapp:'(88) 98765-4321',tipo:'arquiteto',cidade:'Russas – CE',obs:'Parceiro recorrente.',historico:[],anotacoes:''},
-    {id:c2,nome:'Construtora BH Obras',whatsapp:'(85) 99100-2200',tipo:'construtora',cidade:'Fortaleza – CE',obs:'Grande construtora, demanda mensal.',historico:[],anotacoes:''}
-  ]);
-  save('efcrm_projetos',[
-    {id:uid(),clienteId:c1,descricao:'Proj. Estrutural – Residência 180m²',servico:'projeto_completo',valor:5800,prazo:fut(20),status:'elaboracao',progresso:45},
-    {id:uid(),clienteId:c1,descricao:'Proj. Estrutural – Sobrado 220m²',servico:'projeto_completo',valor:7200,prazo:fut(-5),status:'entregue',progresso:100},
-    {id:uid(),clienteId:c2,descricao:'Revisão Estrutural – Galpão Industrial',servico:'revisao',valor:12000,prazo:fut(10),status:'aguardando',progresso:20}
-  ]);
-  save('efcrm_agenda',[
-    {id:uid(),titulo:'Follow-up – Fernanda Costa',data:fut(-2),clienteId:'',clienteNome:'Fernanda Costa Lima',descricao:'Ligar para confirmar aprovação da proposta.'},
-    {id:uid(),titulo:'Reunião de briefing',data:tod,clienteId:c1,clienteNome:'Arq. João Batista',descricao:'Alinhamento de prazos.'},
-    {id:uid(),titulo:'Entrega de pranchas',data:fut(8),clienteId:c2,clienteNome:'Construtora BH Obras',descricao:'Prazo contratual.'}
-  ]);
+// Cache local para performance
+let cache = { leads:[], clientes:[], projetos:[], agenda:[], usuarios:[] };
+
+// Unsubs para listeners em tempo real
+let unsubs = [];
+
+// ════════ SYNC STATUS ════════
+function setSyncing(v){
+  const dot=document.getElementById('syncDot');
+  const msg=document.getElementById('syncMsg');
+  if(dot) dot.className='sync-dot'+(v?' syncing':'');
+  if(msg) msg.textContent=v?'salvando...':'online';
 }
-seedIfEmpty();
 
 // ════════ AUTH ════════
-function getCreds(){return load('efcrm_creds',{user:'emanuel',pass:'engcivil2025'});}
-document.getElementById('loginBtn').onclick=doLogin;
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    setLoading('Carregando perfil...');
+    try {
+      const snap = await getDoc(doc(db,'usuarios',user.uid));
+      if (snap.exists()) {
+        currentUser = user;
+        currentUserData = {id:user.uid, ...snap.data()};
+        showApp();
+      } else {
+        // usuário Firebase mas sem doc no Firestore — cria como admin se for o primeiro
+        const allUsers = await getDocs(collection(db,'usuarios'));
+        const role = allUsers.empty ? 'admin' : 'user';
+        const userData = {nome: user.displayName||user.email.split('@')[0], email:user.email, role, createdAt: new Date().toISOString()};
+        await setDoc(doc(db,'usuarios',user.uid), userData);
+        currentUser = user;
+        currentUserData = {id:user.uid, ...userData};
+        showApp();
+      }
+    } catch(e) {
+      hideLoading();
+      showLogin('Erro ao carregar perfil: '+e.message);
+    }
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    unsubs.forEach(u=>u());
+    unsubs = [];
+    hideLoading();
+    showLogin();
+  }
+});
+
+function setLoading(msg='Conectando...'){
+  document.getElementById('loadingMsg').textContent=msg;
+  document.getElementById('loadingScreen').style.display='flex';
+  document.getElementById('loginScreen').classList.remove('visible');
+  document.getElementById('app').classList.remove('visible');
+}
+function hideLoading(){
+  document.getElementById('loadingScreen').style.display='none';
+}
+function showLogin(err=''){
+  hideLoading();
+  document.getElementById('loginScreen').classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
+  if(err){ const el=document.getElementById('loginError'); el.textContent=err; el.style.display='block'; }
+}
+function showApp(){
+  hideLoading();
+  document.getElementById('loginScreen').classList.remove('visible');
+  document.getElementById('app').classList.add('visible');
+  // Atualizar sidebar
+  const name = currentUserData?.nome || currentUser.email;
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('sidebarAvatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('sidebarRole').textContent = currentUserData?.role==='admin'?'Administrador':'Usuário';
+  // Mostrar menu admin
+  document.getElementById('adminNav').style.display = currentUserData?.role==='admin'?'':'none';
+  // Iniciar listeners
+  startListeners();
+  renderPage('dashboard');
+}
+
+document.getElementById('loginBtn').onclick = doLogin;
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogin(){
-  const u=document.getElementById('loginUser').value.trim();
-  const p=document.getElementById('loginPass').value;
-  const c=getCreds();
-  if(u===c.user&&p===c.pass){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('app').classList.add('visible');
-    renderPage('dashboard');
-  }else{
-    document.getElementById('loginError').style.display='block';
-    document.getElementById('loginPass').value='';
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if(!email||!pass){err.textContent='Preencha e-mail e senha.';err.style.display='block';return;}
+  btn.disabled=true; btn.textContent='ENTRANDO...';
+  err.style.display='none';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential':'E-mail ou senha incorretos.',
+      'auth/user-not-found':'Usuário não encontrado.',
+      'auth/wrong-password':'Senha incorreta.',
+      'auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos.',
+      'auth/invalid-email':'E-mail inválido.'
+    };
+    err.textContent = msgs[e.code]||('Erro: '+e.message);
+    err.style.display='block';
+    btn.disabled=false; btn.textContent='ENTRAR →';
   }
 }
-document.getElementById('logoutBtn').onclick=()=>{
-  document.getElementById('app').classList.remove('visible');
-  document.getElementById('loginScreen').style.display='flex';
-  ['loginUser','loginPass'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('loginError').style.display='none';
-};
+
+document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+// ════════ LISTENERS TEMPO REAL ════════
+function startListeners(){
+  unsubs.forEach(u=>u());
+  unsubs=[];
+
+  const listen = (col, cacheKey, cb) => {
+    const q = query(collection(db,col));
+    const unsub = onSnapshot(q, snap=>{
+      cache[cacheKey] = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(cb) cb();
+    });
+    unsubs.push(unsub);
+  };
+
+  listen('leads','leads', ()=>{ updateNavBadge(); if(currentPage==='leads')renderLeads(); if(currentPage==='dashboard')renderDashboard(); });
+  listen('clientes','clientes', ()=>{ if(currentPage==='clientes')renderClientes(); if(currentPage==='dashboard')renderDashboard(); });
+  listen('projetos','projetos', ()=>{ if(currentPage==='projetos')renderProjetos(); if(currentPage==='dashboard')renderDashboard(); });
+  listen('agenda','agenda', ()=>{ if(currentPage==='agenda')renderAgenda(); });
+  listen('usuarios','usuarios', ()=>{ if(currentPage==='usuarios')renderUsuarios(); });
+}
+
+// ════════ FIRESTORE HELPERS ════════
+async function fsAdd(col, data){
+  setSyncing(true);
+  try{ const r=await addDoc(collection(db,col),{...data,criadoEm:new Date().toISOString(),criadoPor:currentUser?.uid||''}); return r.id; }
+  finally{ setSyncing(false); }
+}
+async function fsSet(col, id, data){
+  setSyncing(true);
+  try{ await setDoc(doc(db,col,id),{...data,atualizadoEm:new Date().toISOString()},{merge:true}); }
+  finally{ setSyncing(false); }
+}
+async function fsUpdate(col, id, data){
+  setSyncing(true);
+  try{ await updateDoc(doc(db,col,id),{...data,atualizadoEm:new Date().toISOString()}); }
+  finally{ setSyncing(false); }
+}
+async function fsDelete(col, id){
+  setSyncing(true);
+  try{ await deleteDoc(doc(db,col,id)); }
+  finally{ setSyncing(false); }
+}
 
 // ════════ NAVIGATION ════════
-const PAGE_TITLES={dashboard:'Dashboard',leads:'Leads',clientes:'Clientes',projetos:'Projetos',agenda:'Agenda',configuracoes:'Configurações'};
-let currentPage='dashboard';
+const PAGE_TITLES={dashboard:'Dashboard',leads:'Leads',clientes:'Clientes',projetos:'Projetos',agenda:'Agenda',usuarios:'Usuários',configuracoes:'Configurações'};
+
 document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click',()=>{closePanel();renderPage(item.dataset.page);});
+  item.addEventListener('click',()=>{ closePanel(); renderPage(item.dataset.page); });
 });
+
 function renderPage(page){
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.page===page));
   document.getElementById('topbarTitle').textContent=PAGE_TITLES[page]||page;
   document.getElementById('topbarActions').innerHTML='';
-  updateNavBadge();
-  ({dashboard:renderDashboard,leads:renderLeads,clientes:renderClientes,projetos:renderProjetos,agenda:renderAgenda,configuracoes:renderConfiguracoes})[page]?.();
+  const pages={dashboard:renderDashboard,leads:renderLeads,clientes:renderClientes,projetos:renderProjetos,agenda:renderAgenda,usuarios:renderUsuarios,configuracoes:renderConfiguracoes};
+  pages[page]?.();
 }
+
 function updateNavBadge(){
-  const n=load('efcrm_leads',[]).filter(l=>!l.lido).length;
+  const n=cache.leads.filter(l=>!l.lido).length;
   const b=document.getElementById('navLeadsBadge');
-  if(n>0){b.style.display='';b.textContent=n;}else b.style.display='none';
+  if(b){ if(n>0){b.style.display='';b.textContent=n;}else b.style.display='none'; }
 }
 
 // ════════ DASHBOARD ════════
-let dashPeriod=30,dashTab='leads';
 function renderDashboard(){
   document.getElementById('topbarActions').innerHTML=`
     <button class="filter-btn ${dashPeriod===7?'active':''}" onclick="setDashPeriod(7)">7 dias</button>
     <button class="filter-btn ${dashPeriod===30?'active':''}" onclick="setDashPeriod(30)">30 dias</button>
     <button class="filter-btn ${dashPeriod===90?'active':''}" onclick="setDashPeriod(90)">90 dias</button>`;
-  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-dashPeriod);
-  const allLeads=load('efcrm_leads',[]);
-  const leads=allLeads.filter(l=>new Date(l.data)>=cutoff);
-  const projetos=load('efcrm_projetos',[]);
-  const clientes=load('efcrm_clientes',[]);
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-dashPeriod);
+  const leads=cache.leads.filter(l=>new Date(l.data||l.criadoEm)>=cutoff);
+  const projetos=cache.projetos;
+  const clientes=cache.clientes;
   const totalL=leads.length,ativosL=leads.filter(l=>!['fechado','perdido'].includes(l.status)).length;
   const propostas=leads.filter(l=>l.status==='proposta').length,fechados=leads.filter(l=>l.status==='fechado').length,perdidos=leads.filter(l=>l.status==='perdido').length;
   const conv=totalL>0?((fechados/totalL)*100).toFixed(1):'0.0';
@@ -556,48 +718,51 @@ function renderDashboard(){
     </div>
     <div id="dt-leads" style="display:${dashTab==='leads'?'block':'none'}">
       <div class="grid-4">
-        <div class="card card-info"><div class="card-label">Total de Leads</div><div class="card-value">${totalL}</div><div class="card-sub">Últimos ${dashPeriod} dias</div></div>
+        <div class="card card-info"><div class="card-label">Total Leads</div><div class="card-value">${totalL}</div><div class="card-sub">Últimos ${dashPeriod} dias</div></div>
         <div class="card card-accent"><div class="card-label">Leads Ativos</div><div class="card-value">${ativosL}</div><div class="card-sub">Em andamento</div></div>
-        <div class="card" style="border-top:2px solid #8a57eb"><div class="card-label">Propostas Enviadas</div><div class="card-value">${propostas}</div><div class="card-sub">Aguardando retorno</div></div>
+        <div class="card" style="border-top:2px solid #8a57eb"><div class="card-label">Propostas</div><div class="card-value">${propostas}</div><div class="card-sub">Aguardando retorno</div></div>
         <div class="card card-success"><div class="card-label">Fechados</div><div class="card-value">${fechados}</div><div class="card-sub">${perdidos} perdidos</div></div>
       </div>
       <div class="grid-2">
-        <div class="card card-accent"><div class="card-label">Taxa de Conversão</div><div class="card-value">${conv}<span style="font-size:20px;color:var(--muted)">%</span></div><div class="card-sub">Leads → Fechados</div></div>
-        <div class="card card-success"><div class="card-label">Ticket Médio (Projetos)</div><div class="card-value" style="font-size:28px">R$ ${ticket}</div><div class="card-sub">Base de ${projetos.length} projeto(s)</div></div>
+        <div class="card card-accent"><div class="card-label">Taxa de Conversão</div><div class="card-value">${conv}<span style="font-size:20px;color:var(--muted)">%</span></div></div>
+        <div class="card card-success"><div class="card-label">Ticket Médio</div><div class="card-value" style="font-size:26px">R$ ${ticket}</div><div class="card-sub">${projetos.length} projeto(s)</div></div>
       </div>
       <div class="card">
-        <div class="section-header" style="margin-bottom:20px"><div class="section-title">Leads por Status</div></div>
+        <div class="section-title" style="margin-bottom:20px">Leads por Status</div>
         <div class="bar-chart">${Object.entries(sCounts).map(([k,v])=>`<div class="bar-row"><div class="bar-label">${lbl('status',k)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxS*100}%;background:${sColors[k]}"></div></div><div class="bar-count">${v}</div></div>`).join('')}</div>
       </div>
     </div>
     <div id="dt-clientes" style="display:${dashTab==='clientes'?'block':'none'}">
       <div class="grid-4">
-        <div class="card card-info"><div class="card-label">Clientes</div><div class="card-value">${clientes.length}</div><div class="card-sub">Na base</div></div>
-        <div class="card card-accent"><div class="card-label">Projetos Ativos</div><div class="card-value">${projAtivos}</div><div class="card-sub">Em andamento</div></div>
-        <div class="card card-success"><div class="card-label">Receita Total</div><div class="card-value" style="font-size:24px">R$ ${recTotal.toLocaleString('pt-BR')}</div><div class="card-sub">Todos os projetos</div></div>
-        <div class="card card-warn"><div class="card-label">Receita Entregue</div><div class="card-value" style="font-size:24px">R$ ${recEntregue.toLocaleString('pt-BR')}</div><div class="card-sub">${projetos.filter(p=>p.status==='entregue').length} entregues</div></div>
+        <div class="card card-info"><div class="card-label">Clientes</div><div class="card-value">${clientes.length}</div></div>
+        <div class="card card-accent"><div class="card-label">Projetos Ativos</div><div class="card-value">${projAtivos}</div></div>
+        <div class="card card-success"><div class="card-label">Receita Total</div><div class="card-value" style="font-size:24px">R$ ${recTotal.toLocaleString('pt-BR')}</div></div>
+        <div class="card card-warn"><div class="card-label">Receita Entregue</div><div class="card-value" style="font-size:24px">R$ ${recEntregue.toLocaleString('pt-BR')}</div></div>
       </div>
       <div class="card" style="margin-bottom:16px">
-        <div class="section-header" style="margin-bottom:20px"><div class="section-title">Projetos por Status</div></div>
-        <div class="bar-chart">${Object.entries(pCounts).map(([k,v])=>`<div class="bar-row"><div class="bar-label">${lbl('statusProj',k)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxP*100}%;background:${PROJ_COLORS[k]||'var(--accent)'}"></div></div><div class="bar-count">${v}</div></div>`).join('')}</div>
+        <div class="section-title" style="margin-bottom:20px">Projetos por Status</div>
+        <div class="bar-chart">${Object.entries(pCounts).map(([k,v])=>`<div class="bar-row"><div class="bar-label">${lbl('statusProj',k)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxP*100}%;background:${PROJ_COLORS[k]}"></div></div><div class="bar-count">${v}</div></div>`).join('')}</div>
       </div>
       <div class="card">
-        <div class="section-header" style="margin-bottom:16px"><div class="section-title">Projetos Recentes</div></div>
+        <div class="section-title" style="margin-bottom:16px">Projetos Recentes</div>
         ${projetos.length===0?'<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum projeto.</p></div>':
           projetos.slice(0,6).map(p=>{const cli=clientes.find(c=>c.id===p.clienteId);const cor=PROJ_COLORS[p.status]||'var(--accent)';return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${p.descricao}</div><div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${cli?cli.nome:'—'}</div></div><div style="text-align:right;min-width:90px"><div style="font-size:13px;font-weight:600;color:var(--text)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</div><div style="font-size:10px;font-family:'DM Mono',monospace;color:${cor}">${lbl('statusProj',p.status)}</div></div><div style="width:80px"><div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;font-family:'DM Mono',monospace">${p.progresso||0}%</div></div></div>`;}).join('')}
       </div>
     </div>
   </div>`;
 }
-function setDashPeriod(p){dashPeriod=p;renderDashboard();}
-function setDashTab(t){dashTab=t;renderDashboard();}
+window.setDashPeriod=(p)=>{dashPeriod=p;renderDashboard();};
+window.setDashTab=(t)=>{dashTab=t;renderDashboard();};
 
 // ════════ LEADS ════════
-let lf={tipo:'',status:'',busca:''};
 function renderLeads(){
   document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNewLead()">+ Novo Lead</button>`;
-  const leads=load('efcrm_leads',[]);
-  let fil=leads.filter(l=>(!lf.tipo||l.tipo===lf.tipo)&&(!lf.status||l.status===lf.status)&&(!lf.busca||l.nome.toLowerCase().includes(lf.busca.toLowerCase())||(l.cidade||'').toLowerCase().includes(lf.busca.toLowerCase())));
+  let fil=cache.leads.filter(l=>
+    (!lf.tipo||l.tipo===lf.tipo)&&
+    (!lf.status||l.status===lf.status)&&
+    (!lf.busca||l.nome?.toLowerCase().includes(lf.busca.toLowerCase())||(l.cidade||'').toLowerCase().includes(lf.busca.toLowerCase()))
+  );
+  fil.sort((a,b)=>new Date(b.data||b.criadoEm)-new Date(a.data||a.criadoEm));
   document.getElementById('mainContent').innerHTML=`<div class="page">
     <div class="filter-bar">
       <input type="text" placeholder="Buscar nome ou cidade..." value="${lf.busca}" oninput="lf.busca=this.value;renderLeads()" style="min-width:200px">
@@ -607,17 +772,20 @@ function renderLeads(){
     <div class="table-wrap"><table>
       <thead><tr><th></th><th>Nome</th><th>Tipo</th><th>Serviço</th><th>Cidade</th><th>Área</th><th>Prazo</th><th>Como Conheceu</th><th>Data</th><th>Origem</th><th>Status</th></tr></thead>
       <tbody>${fil.length===0?`<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">📭</div><p>Nenhum lead.</p></div></td></tr>`:
-        fil.map(l=>`<tr class="${!l.lido?'unread':''}" onclick="openLeadPanel('${l.id}')"><td style="width:16px;padding-right:0">${!l.lido?'<span class="unread-dot"></span>':''}</td><td class="bold">${l.nome}</td><td>${lbl('tipo',l.tipo)}</td><td>${lbl('servico',l.servico)}</td><td>${l.cidade||'—'}</td><td>${lbl('area',l.area)}</td><td>${lbl('prazo',l.prazo)}</td><td>${lbl('como_conheceu',l.como_conheceu)}</td><td>${fmtDate(l.data)}</td><td><span class="tag tag-${l.origem==='formulario'?'form':'manual'}">${l.origem==='formulario'?'Formulário':'Manual'}</span></td><td><span class="tag tag-${l.status}">${lbl('status',l.status)}</span></td></tr>`).join('')}
+        fil.map(l=>`<tr class="${!l.lido?'unread':''}" onclick="openLeadPanel('${l.id}')"><td style="width:16px;padding-right:0">${!l.lido?'<span class="unread-dot"></span>':''}</td><td class="bold">${l.nome||'—'}</td><td>${lbl('tipo',l.tipo)}</td><td>${lbl('servico',l.servico)}</td><td>${l.cidade||'—'}</td><td>${lbl('area',l.area)}</td><td>${lbl('prazo',l.prazo)}</td><td>${lbl('como_conheceu',l.como_conheceu)}</td><td>${fmtDate(l.data||l.criadoEm)}</td><td><span class="tag tag-${l.origem==='formulario'?'form':'manual'}">${l.origem==='formulario'?'Formulário':'Manual'}</span></td><td><span class="tag tag-${l.status}">${lbl('status',l.status)}</span></td></tr>`).join('')}
       </tbody>
     </table></div>
   </div>`;
 }
-function openNewLead(){
+window.lf=lf;
+window.renderLeads=renderLeads;
+
+window.openNewLead=()=>{
   ['nome','whatsapp','tipo','servico','tipologia','area','cidade','prazo','tem_arq','como_conheceu','descricao'].forEach(f=>{const el=document.getElementById('fl-'+f);if(el)el.value='';});
-  document.getElementById('modalLeadTitle').textContent='NOVO LEAD';
   openModal('modalLead');
-}
-document.getElementById('saveLeadBtn').onclick=()=>{
+};
+
+document.getElementById('saveLeadBtn').onclick=async()=>{
   const nome=document.getElementById('fl-nome').value.trim();
   const whatsapp=document.getElementById('fl-whatsapp').value.trim();
   const tipo=document.getElementById('fl-tipo').value;
@@ -627,72 +795,80 @@ document.getElementById('saveLeadBtn').onclick=()=>{
   const cidade=document.getElementById('fl-cidade').value.trim();
   const prazo=document.getElementById('fl-prazo').value;
   if(!nome||!whatsapp||!tipo||!servico||!tipologia||!area||!cidade||!prazo){alert('Preencha todos os campos obrigatórios (*)');return;}
-  const leads=load('efcrm_leads',[]);
-  leads.unshift({id:uid(),origem:'manual',status:'novo',lido:true,nome,whatsapp,tipo,servico,tipologia,area,cidade,prazo,tem_arq:document.getElementById('fl-tem_arq').value,como_conheceu:document.getElementById('fl-como_conheceu').value,descricao:document.getElementById('fl-descricao').value.trim(),data:new Date().toISOString(),historico:[],anotacoes:''});
-  save('efcrm_leads',leads);closeModal('modalLead');renderLeads();updateNavBadge();
+  const btn=document.getElementById('saveLeadBtn'); btn.disabled=true; btn.textContent='Salvando...';
+  await fsAdd('leads',{origem:'manual',status:'novo',lido:false,nome,whatsapp,tipo,servico,tipologia,area,cidade,prazo,
+    tem_arq:document.getElementById('fl-tem_arq').value,
+    como_conheceu:document.getElementById('fl-como_conheceu').value,
+    descricao:document.getElementById('fl-descricao').value.trim(),
+    data:new Date().toISOString(),historico:[],anotacoes:''});
+  btn.disabled=false; btn.textContent='SALVAR LEAD';
+  closeModal('modalLead');
 };
-function openLeadPanel(id){
-  const leads=load('efcrm_leads',[]);const lead=leads.find(l=>l.id===id);if(!lead)return;
-  lead.lido=true;save('efcrm_leads',leads);updateNavBadge();
-  if(currentPage==='leads')renderLeads();
-  document.getElementById('panelName').textContent=lead.nome;
+
+window.openLeadPanel=async(id)=>{
+  const lead=cache.leads.find(l=>l.id===id); if(!lead) return;
+  if(!lead.lido) await fsUpdate('leads',id,{lido:true});
+  document.getElementById('panelName').textContent=lead.nome||'—';
   document.getElementById('panelTags').innerHTML=`<span class="tag tag-${lead.status}">${lbl('status',lead.status)}</span><span class="tag tag-${lead.origem==='formulario'?'form':'manual'}">${lead.origem==='formulario'?'Formulário':'Manual'}</span>`;
   document.getElementById('panelBody').innerHTML=`
     <div class="panel-section"><div class="panel-section-title">Ações</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select class="status-select" onchange="updateLeadStatus('${id}',this.value)">${Object.entries(L.status).map(([k,v])=>`<option value="${k}" ${lead.status===k?'selected':''}>${v}</option>`).join('')}</select>
-        <a href="https://wa.me/${lead.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(lead.nome)}!" target="_blank" class="btn btn-sm btn-whatsapp">${waSVG()} WhatsApp</a>
+        ${lead.whatsapp?`<a href="https://wa.me/${lead.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(lead.nome||'')}!" target="_blank" class="btn btn-sm btn-whatsapp">${waSVG()} WhatsApp</a>`:''}
       </div>
     </div>
-    <div class="panel-section"><div class="panel-section-title">Dados do Formulário</div>
+    <div class="panel-section"><div class="panel-section-title">Dados</div>
       <div class="detail-grid">
-        <div><div class="detail-key">Código</div><div class="detail-val" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">#${lead.id.toUpperCase()}</div></div>
-        <div><div class="detail-key">Data de Entrada</div><div class="detail-val">${fmtDate(lead.data)}</div></div>
-        <div><div class="detail-key">WhatsApp</div><div class="detail-val">${lead.whatsapp}</div></div>
+        <div><div class="detail-key">WhatsApp</div><div class="detail-val">${lead.whatsapp||'—'}</div></div>
+        <div><div class="detail-key">Data</div><div class="detail-val">${fmtDate(lead.data||lead.criadoEm)}</div></div>
         <div><div class="detail-key">Tipo</div><div class="detail-val">${lbl('tipo',lead.tipo)}</div></div>
         <div><div class="detail-key">Serviço</div><div class="detail-val">${lbl('servico',lead.servico)}</div></div>
         <div><div class="detail-key">Tipologia</div><div class="detail-val">${lbl('tipologia',lead.tipologia)}</div></div>
         <div><div class="detail-key">Área</div><div class="detail-val">${lbl('area',lead.area)}</div></div>
         <div><div class="detail-key">Cidade</div><div class="detail-val">${lead.cidade||'—'}</div></div>
         <div><div class="detail-key">Prazo</div><div class="detail-val">${lbl('prazo',lead.prazo)}</div></div>
-        <div><div class="detail-key">Tem Proj. ARQ?</div><div class="detail-val">${lbl('tem_arq',lead.tem_arq)}</div></div>
+        <div><div class="detail-key">Tem ARQ?</div><div class="detail-val">${lbl('tem_arq',lead.tem_arq)}</div></div>
         <div><div class="detail-key">Como Conheceu</div><div class="detail-val">${lbl('como_conheceu',lead.como_conheceu)}</div></div>
       </div>
       ${lead.descricao?`<div style="margin-top:12px"><div class="detail-key" style="margin-bottom:6px">Descrição</div><div style="font-size:13px;color:var(--muted2);line-height:1.6;background:var(--bg);padding:10px;border:1px solid var(--border)">${lead.descricao}</div></div>`:''}
     </div>
-    <div class="panel-section"><div class="panel-section-title">Histórico de Contatos</div>
-      <div class="timeline" id="panelTimeline">${renderTimeline(lead.historico)}</div>
+    <div class="panel-section"><div class="panel-section-title">Histórico</div>
+      <div class="timeline" id="panelTimeline">${renderTimeline(lead.historico||[])}</div>
       <div class="nota-form" style="margin-top:14px">
-        <input class="nota-input" style="flex:1" type="text" id="novaNotaInput" placeholder="Registrar novo contato...">
+        <input class="nota-input" style="flex:1" type="text" id="novaNotaInput" placeholder="Registrar contato...">
         <button class="btn btn-primary btn-sm" onclick="addHistoricoLead('${id}')">+</button>
       </div>
     </div>
     <div class="panel-section"><div class="panel-section-title">Anotações</div>
-      <textarea class="nota-input" style="width:100%;min-height:80px;resize:vertical;display:block" id="anotacoesInput" placeholder="Anotações livres...">${lead.anotacoes||''}</textarea>
+      <textarea class="nota-input" style="width:100%;min-height:80px;resize:vertical;display:block" id="anotacoesInput">${lead.anotacoes||''}</textarea>
       <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="saveAnotacoesLead('${id}')">Salvar anotações</button>
     </div>`;
   openPanel();
-}
-function updateLeadStatus(id,status){const leads=load('efcrm_leads',[]);const l=leads.find(x=>x.id===id);if(l){l.status=status;save('efcrm_leads',leads);}if(currentPage==='leads')renderLeads();if(currentPage==='dashboard')renderDashboard();}
-function addHistoricoLead(id){
-  const inp=document.getElementById('novaNotaInput');const t=inp.value.trim();if(!t)return;
-  const leads=load('efcrm_leads',[]);const l=leads.find(x=>x.id===id);if(!l)return;
-  l.historico.push({data:new Date().toISOString(),texto:t});save('efcrm_leads',leads);inp.value='';
-  const tl=document.getElementById('panelTimeline');if(tl)tl.innerHTML=renderTimeline(l.historico);
-}
-function saveAnotacoesLead(id){
-  const leads=load('efcrm_leads',[]);const l=leads.find(x=>x.id===id);if(!l)return;
-  l.anotacoes=document.getElementById('anotacoesInput').value;save('efcrm_leads',leads);
-  const btn=event.target;const orig=btn.textContent;btn.textContent='✓ Salvo';setTimeout(()=>btn.textContent=orig,1500);
-}
+};
+
+window.updateLeadStatus=async(id,status)=>{
+  await fsUpdate('leads',id,{status});
+};
+window.addHistoricoLead=async(id)=>{
+  const inp=document.getElementById('novaNotaInput'); const t=inp.value.trim(); if(!t) return;
+  const lead=cache.leads.find(l=>l.id===id); if(!lead) return;
+  const hist=[...(lead.historico||[]),{data:new Date().toISOString(),texto:t}];
+  await fsUpdate('leads',id,{historico:hist}); inp.value='';
+  const tl=document.getElementById('panelTimeline'); if(tl) tl.innerHTML=renderTimeline(hist);
+};
+window.saveAnotacoesLead=async(id)=>{
+  const v=document.getElementById('anotacoesInput').value;
+  await fsUpdate('leads',id,{anotacoes:v});
+  const btn=event.target; const orig=btn.textContent; btn.textContent='✓ Salvo'; setTimeout(()=>btn.textContent=orig,1500);
+};
 
 // ════════ CLIENTES ════════
 function renderClientes(){
   document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNovoCliente()">+ Novo Cliente</button>`;
-  const clientes=load('efcrm_clientes',[]);
-  const projetos=load('efcrm_projetos',[]);
+  const clientes=cache.clientes;
+  const projetos=cache.projetos;
   document.getElementById('mainContent').innerHTML=`<div class="page">
-    ${clientes.length===0?`<div class="empty-state"><div class="empty-state-icon">&#128100;</div><p>Nenhum cliente cadastrado.</p></div>`:
+    ${clientes.length===0?`<div class="empty-state"><div class="empty-state-icon">👤</div><p>Nenhum cliente.</p></div>`:
       clientes.map(c=>{
         const cp=projetos.filter(p=>p.clienteId===c.id);
         const ativos=cp.filter(p=>!['entregue','cancelado'].includes(p.status)).length;
@@ -700,23 +876,22 @@ function renderClientes(){
         return`<div class="client-row">
           <div style="flex:1;min-width:0;cursor:pointer" onclick="openClientePanel('${c.id}')"><div style="font-size:14px;font-weight:600;color:var(--text)">${c.nome}</div><div style="font-size:12px;color:var(--muted2)">${lbl('tipo',c.tipo)}${c.cidade?' · '+c.cidade:''}</div></div>
           <div style="text-align:right;min-width:100px;cursor:pointer" onclick="openClientePanel('${c.id}')"><div style="font-size:13px;font-weight:600;color:var(--text)">R$ ${rec.toLocaleString('pt-BR')}</div><div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${cp.length} proj · ${ativos} ativo(s)</div></div>
-          <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn btn-ghost btn-sm" onclick="openEditCliente('${c.id}')">Editar</button>
-          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openEditCliente('${c.id}')">Editar</button>
         </div>`;
       }).join('')}
   </div>`;
 }
-function openNovoCliente(){
+
+window.openNovoCliente=()=>{
   ['nome','whatsapp','tipo','cidade','obs'].forEach(f=>{const el=document.getElementById('fc-'+f);if(el)el.value='';});
   delete document.getElementById('fc-nome').dataset.editId;
   document.getElementById('modalClienteTitle').textContent='NOVO CLIENTE';
   document.getElementById('deleteClienteBtn').style.display='none';
   document.getElementById('confirmDeleteBox').style.display='none';
   openModal('modalCliente');
-}
-function openEditCliente(id){
-  const c=load('efcrm_clientes',[]).find(x=>x.id===id);if(!c)return;
+};
+window.openEditCliente=(id)=>{
+  const c=cache.clientes.find(x=>x.id===id); if(!c) return;
   document.getElementById('fc-nome').value=c.nome;
   document.getElementById('fc-nome').dataset.editId=id;
   document.getElementById('fc-whatsapp').value=c.whatsapp||'';
@@ -727,38 +902,33 @@ function openEditCliente(id){
   document.getElementById('deleteClienteBtn').style.display='';
   document.getElementById('confirmDeleteBox').style.display='none';
   openModal('modalCliente');
-}
-document.getElementById('confirmDeleteYes').onclick=()=>{
-  const id=document.getElementById('fc-nome').dataset.editId;
-  if(id) deleteCliente(id);
 };
-document.getElementById('saveClienteBtn').onclick=()=>{
-  const nome=document.getElementById('fc-nome').value.trim();
-  if(!nome){alert('Informe o nome do cliente.');return;}
-  const clientes=load('efcrm_clientes',[]);
-  const editId=document.getElementById('fc-nome').dataset.editId;
-  const dados={nome,whatsapp:document.getElementById('fc-whatsapp').value.trim(),tipo:document.getElementById('fc-tipo').value,cidade:document.getElementById('fc-cidade').value.trim(),obs:document.getElementById('fc-obs').value.trim()};
-  if(editId){const c=clientes.find(x=>x.id===editId);if(c)Object.assign(c,dados);delete document.getElementById('fc-nome').dataset.editId;}
-  else clientes.push({id:uid(),...dados,historico:[],anotacoes:''});
-  save('efcrm_clientes',clientes);closeModal('modalCliente');renderClientes();
-};
-function confirmDeleteCliente(){
-  document.getElementById('confirmDeleteBox').style.display='block';
-  document.getElementById('deleteClienteBtn').style.display='none';
-}
-function cancelConfirmDelete(){
-  document.getElementById('confirmDeleteBox').style.display='none';
-  document.getElementById('deleteClienteBtn').style.display='';
-}
-function deleteCliente(id){
-  save('efcrm_clientes',load('efcrm_clientes',[]).filter(c=>c.id!==id));
-  save('efcrm_projetos',load('efcrm_projetos',[]).filter(p=>p.clienteId!==id));
+window.confirmDeleteCliente=()=>{ document.getElementById('confirmDeleteBox').style.display='block'; document.getElementById('deleteClienteBtn').style.display='none'; };
+window.cancelConfirmDelete=()=>{ document.getElementById('confirmDeleteBox').style.display='none'; document.getElementById('deleteClienteBtn').style.display=''; };
+
+document.getElementById('confirmDeleteYes').onclick=async()=>{
+  const id=document.getElementById('fc-nome').dataset.editId; if(!id) return;
+  // remover projetos vinculados
+  const projs=cache.projetos.filter(p=>p.clienteId===id);
+  await Promise.all(projs.map(p=>fsDelete('projetos',p.id)));
+  await fsDelete('clientes',id);
   closeModal('modalCliente');
-  renderClientes();
-}
-function openClientePanel(id){
-  const clientes=load('efcrm_clientes',[]);const c=clientes.find(x=>x.id===id);if(!c)return;
-  const projetos=load('efcrm_projetos',[]).filter(p=>p.clienteId===id);
+};
+
+document.getElementById('saveClienteBtn').onclick=async()=>{
+  const nome=document.getElementById('fc-nome').value.trim(); if(!nome){alert('Informe o nome.');return;}
+  const dados={nome,whatsapp:document.getElementById('fc-whatsapp').value.trim(),tipo:document.getElementById('fc-tipo').value,cidade:document.getElementById('fc-cidade').value.trim(),obs:document.getElementById('fc-obs').value.trim()};
+  const btn=document.getElementById('saveClienteBtn'); btn.disabled=true; btn.textContent='Salvando...';
+  const editId=document.getElementById('fc-nome').dataset.editId;
+  if(editId){ await fsUpdate('clientes',editId,dados); }
+  else { await fsAdd('clientes',{...dados,historico:[],anotacoes:''}); }
+  btn.disabled=false; btn.textContent='SALVAR';
+  closeModal('modalCliente');
+};
+
+window.openClientePanel=(id)=>{
+  const c=cache.clientes.find(x=>x.id===id); if(!c) return;
+  const projetos=cache.projetos.filter(p=>p.clienteId===id);
   const rec=projetos.reduce((s,p)=>s+Number(p.valor||0),0);
   document.getElementById('panelName').textContent=c.nome;
   document.getElementById('panelTags').innerHTML=`<span class="tag tag-form">${lbl('tipo',c.tipo)||'Cliente'}</span>`;
@@ -777,7 +947,7 @@ function openClientePanel(id){
         <div><div class="detail-key">Cidade</div><div class="detail-val">${c.cidade||'—'}</div></div>
         <div><div class="detail-key">Receita Total</div><div class="detail-val" style="color:var(--success)">R$ ${rec.toLocaleString('pt-BR')}</div></div>
       </div>
-      ${c.obs?`<div style="margin-top:10px"><div class="detail-key" style="margin-bottom:4px">Observações</div><div style="font-size:13px;color:var(--muted2)">${c.obs}</div></div>`:''}
+      ${c.obs?`<div style="margin-top:10px"><div class="detail-key" style="margin-bottom:4px">Obs</div><div style="font-size:13px;color:var(--muted2)">${c.obs}</div></div>`:''}
     </div>
     <div class="panel-section"><div class="panel-section-title">Projetos (${projetos.length})</div>
       ${projetos.length===0?'<div style="font-size:12px;color:var(--muted)">Nenhum projeto ainda.</div>':
@@ -788,7 +958,7 @@ function openClientePanel(id){
           <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${lbl('servico',p.servico)}</span><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${p.progresso||0}%</span></div>
         </div>`;}).join('')}
     </div>
-    <div class="panel-section"><div class="panel-section-title">Histórico de Contatos</div>
+    <div class="panel-section"><div class="panel-section-title">Histórico</div>
       <div class="timeline" id="panelTimeline">${renderTimeline(c.historico||[])}</div>
       <div class="nota-form" style="margin-top:14px">
         <input class="nota-input" style="flex:1" type="text" id="novaNotaInput" placeholder="Registrar contato...">
@@ -796,60 +966,62 @@ function openClientePanel(id){
       </div>
     </div>
     <div class="panel-section"><div class="panel-section-title">Anotações</div>
-      <textarea class="nota-input" style="width:100%;min-height:80px;resize:vertical;display:block" id="anotacoesInput" placeholder="Anotações livres...">${c.anotacoes||''}</textarea>
+      <textarea class="nota-input" style="width:100%;min-height:80px;resize:vertical;display:block" id="anotacoesInput">${c.anotacoes||''}</textarea>
       <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="saveAnotacoesCliente('${id}')">Salvar anotações</button>
     </div>`;
   openPanel();
-}
-function addHistoricoCliente(id){
-  const inp=document.getElementById('novaNotaInput');const t=inp.value.trim();if(!t)return;
-  const clientes=load('efcrm_clientes',[]);const c=clientes.find(x=>x.id===id);if(!c)return;
-  if(!c.historico)c.historico=[];c.historico.push({data:new Date().toISOString(),texto:t});
-  save('efcrm_clientes',clientes);inp.value='';
-  const tl=document.getElementById('panelTimeline');if(tl)tl.innerHTML=renderTimeline(c.historico);
-}
-function saveAnotacoesCliente(id){
-  const clientes=load('efcrm_clientes',[]);const c=clientes.find(x=>x.id===id);if(!c)return;
-  c.anotacoes=document.getElementById('anotacoesInput').value;save('efcrm_clientes',clientes);
-  const btn=event.target;const orig=btn.textContent;btn.textContent='✓ Salvo';setTimeout(()=>btn.textContent=orig,1500);
-}
+};
+
+window.addHistoricoCliente=async(id)=>{
+  const inp=document.getElementById('novaNotaInput'); const t=inp.value.trim(); if(!t) return;
+  const c=cache.clientes.find(x=>x.id===id); if(!c) return;
+  const hist=[...(c.historico||[]),{data:new Date().toISOString(),texto:t}];
+  await fsUpdate('clientes',id,{historico:hist}); inp.value='';
+  const tl=document.getElementById('panelTimeline'); if(tl) tl.innerHTML=renderTimeline(hist);
+};
+window.saveAnotacoesCliente=async(id)=>{
+  const v=document.getElementById('anotacoesInput').value;
+  await fsUpdate('clientes',id,{anotacoes:v});
+  const btn=event.target; const orig=btn.textContent; btn.textContent='✓ Salvo'; setTimeout(()=>btn.textContent=orig,1500);
+};
 
 // ════════ PROJETOS ════════
-let pjFiltro='';
 function renderProjetos(){
   document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNovoProjeto()">+ Novo Projeto</button>`;
-  const projetos=load('efcrm_projetos',[]);
-  const clientes=load('efcrm_clientes',[]);
+  const projetos=cache.projetos;
+  const clientes=cache.clientes;
   let fil=projetos.filter(p=>!pjFiltro||p.clienteId===pjFiltro);
   const recTotal=fil.reduce((s,p)=>s+Number(p.valor||0),0);
   const recEntregue=fil.filter(p=>p.status==='entregue').reduce((s,p)=>s+Number(p.valor||0),0);
   document.getElementById('mainContent').innerHTML=`<div class="page">
     <div class="grid-3" style="margin-bottom:20px">
-      <div class="card card-info"><div class="card-label">Total de Projetos</div><div class="card-value">${fil.length}</div></div>
+      <div class="card card-info"><div class="card-label">Total</div><div class="card-value">${fil.length}</div></div>
       <div class="card card-success"><div class="card-label">Receita Total</div><div class="card-value" style="font-size:26px">R$ ${recTotal.toLocaleString('pt-BR')}</div></div>
       <div class="card card-accent"><div class="card-label">Receita Entregue</div><div class="card-value" style="font-size:26px">R$ ${recEntregue.toLocaleString('pt-BR')}</div></div>
     </div>
     <div class="filter-bar">
       <select onchange="pjFiltro=this.value;renderProjetos()"><option value="">Todos os clientes</option>${clientes.map(c=>`<option value="${c.id}" ${pjFiltro===c.id?'selected':''}>${c.nome}</option>`).join('')}</select>
     </div>
-    ${fil.length===0?`<div class="empty-state"><div class="empty-state-icon">📋</div><p>Nenhum projeto encontrado.</p></div>`:
+    ${fil.length===0?`<div class="empty-state"><div class="empty-state-icon">📋</div><p>Nenhum projeto.</p></div>`:
       fil.map(p=>{const cli=clientes.find(c=>c.id===p.clienteId);const cor=PROJ_COLORS[p.status]||'var(--accent)';return`<div class="proj-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:14px;font-weight:600;color:var(--text)">${p.descricao}</div><span class="tag" style="background:${cor}22;color:${cor}">${lbl('statusProj',p.status)}</span></div>
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:10px">👤 ${cli?cli.nome:'Cliente removido'}</div>
+        <div style="font-size:12px;color:var(--muted2);margin-bottom:10px">👤 ${cli?cli.nome:'—'}</div>
         <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">
           <span style="font-size:12px;color:var(--muted2)">💰 <strong style="color:var(--text)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</strong></span>
           ${p.prazo?`<span style="font-size:12px;color:var(--muted2)">📅 <strong style="color:var(--text)">${p.prazo}</strong></span>`:''}
-          <span style="font-size:12px;color:var(--muted2)">🔧 ${lbl('servico',p.servico)}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="progress-track" style="flex:1"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><span style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;flex-shrink:0">${p.progresso||0}%</span></div>
-        <div style="display:flex;gap:8px" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="progress-track" style="flex:1"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><span style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${p.progresso||0}%</span></div>
+        <div style="display:flex;gap:8px">
           <button class="btn btn-ghost btn-sm" onclick="openEditProjeto('${p.id}')">Editar</button>
           <button class="btn btn-danger btn-sm" onclick="deleteProjeto('${p.id}')">Remover</button>
         </div>
       </div>`;}).join('')}
   </div>`;
 }
-function openNovoProjeto(clienteIdPreset){
+window.pjFiltro=pjFiltro;
+window.renderProjetos=renderProjetos;
+
+window.openNovoProjeto=(clienteIdPreset)=>{
   ['descricao','valor','prazo','progresso'].forEach(f=>{const el=document.getElementById('fp-'+f);if(el)el.value='';});
   document.getElementById('fp-servico').value='';
   document.getElementById('fp-status').value='elaboracao';
@@ -857,9 +1029,9 @@ function openNovoProjeto(clienteIdPreset){
   document.getElementById('modalProjetoTitle').textContent='NOVO PROJETO';
   populateProjClientes(clienteIdPreset||'');
   openModal('modalProjeto');
-}
-function openEditProjeto(id){
-  const p=load('efcrm_projetos',[]).find(x=>x.id===id);if(!p)return;
+};
+window.openEditProjeto=(id)=>{
+  const p=cache.projetos.find(x=>x.id===id); if(!p) return;
   document.getElementById('fp-descricao').value=p.descricao||'';
   document.getElementById('fp-descricao').dataset.editId=id;
   document.getElementById('fp-servico').value=p.servico||'';
@@ -870,37 +1042,33 @@ function openEditProjeto(id){
   document.getElementById('modalProjetoTitle').textContent='EDITAR PROJETO';
   populateProjClientes(p.clienteId);
   openModal('modalProjeto');
-}
+};
 function populateProjClientes(sel){
-  const clientes=load('efcrm_clientes',[]);
-  document.getElementById('fp-clienteId').innerHTML=`<option value="">Selecione um cliente...</option>`+clientes.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.nome}</option>`).join('');
+  document.getElementById('fp-clienteId').innerHTML=`<option value="">Selecione um cliente...</option>`+cache.clientes.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.nome}</option>`).join('');
 }
-document.getElementById('saveProjetoBtn').onclick=()=>{
+document.getElementById('saveProjetoBtn').onclick=async()=>{
   const descricao=document.getElementById('fp-descricao').value.trim();
   const clienteId=document.getElementById('fp-clienteId').value;
   if(!descricao||!clienteId){alert('Selecione o cliente e informe a descrição.');return;}
-  const projetos=load('efcrm_projetos',[]);
-  const editId=document.getElementById('fp-descricao').dataset.editId;
   const dados={clienteId,descricao,servico:document.getElementById('fp-servico').value,valor:Number(document.getElementById('fp-valor').value)||0,prazo:document.getElementById('fp-prazo').value,status:document.getElementById('fp-status').value,progresso:parseInt(document.getElementById('fp-progresso').value)||0};
-  if(editId){const p=projetos.find(x=>x.id===editId);if(p)Object.assign(p,dados);delete document.getElementById('fp-descricao').dataset.editId;}
-  else projetos.push({id:uid(),...dados});
-  save('efcrm_projetos',projetos);closeModal('modalProjeto');
-  if(currentPage==='projetos')renderProjetos();
-  if(currentPage==='clientes')renderClientes();
-  if(currentPage==='dashboard')renderDashboard();
+  const btn=document.getElementById('saveProjetoBtn'); btn.disabled=true; btn.textContent='Salvando...';
+  const editId=document.getElementById('fp-descricao').dataset.editId;
+  if(editId){ await fsUpdate('projetos',editId,dados); }
+  else { await fsAdd('projetos',dados); }
+  btn.disabled=false; btn.textContent='SALVAR';
+  closeModal('modalProjeto');
 };
-function deleteProjeto(id){
-  if(!confirm('Remover este projeto?'))return;
-  save('efcrm_projetos',load('efcrm_projetos',[]).filter(p=>p.id!==id));
-  renderProjetos();
-}
+window.deleteProjeto=async(id)=>{
+  document.getElementById('mainContent').querySelector(`[onclick="deleteProjeto('${id}')"]`)?.closest('.proj-card')?.style.setProperty('opacity','0.5');
+  await fsDelete('projetos',id);
+};
 
 // ════════ AGENDA ════════
 function renderAgenda(){
   document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNovaAgenda()">+ Novo Compromisso</button>`;
-  const agenda=load('efcrm_agenda',[]);
-  const clientes=load('efcrm_clientes',[]);
-  const today=new Date();today.setHours(0,0,0,0);
+  const agenda=cache.agenda;
+  const clientes=cache.clientes;
+  const today=new Date(); today.setHours(0,0,0,0);
   const sorted=[...agenda].sort((a,b)=>new Date(a.data)-new Date(b.data));
   document.getElementById('mainContent').innerHTML=`<div class="page">
     ${sorted.length===0?`<div class="empty-state"><div class="empty-state-icon">📅</div><p>Nenhum compromisso.</p></div>`:
@@ -918,115 +1086,136 @@ function renderAgenda(){
             ${clinome?`<div style="font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace">👤 ${clinome}</div>`:''}
             ${a.descricao?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${a.descricao}</div>`:''}
           </div>
-          <button class="btn btn-danger btn-sm" style="flex-shrink:0" onclick="deleteAgenda('${a.id}')">✕</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAgenda('${a.id}')">✕</button>
         </div>`;
       }).join('')}
   </div>`;
 }
-function openNovaAgenda(){
+window.openNovaAgenda=()=>{
   document.getElementById('fa-titulo').value='';
   document.getElementById('fa-data').value='';
   document.getElementById('fa-descricao').value='';
-  populateAgendaClientes('');
+  document.getElementById('fa-clienteId').innerHTML=`<option value="">Nenhum / outro</option>`+cache.clientes.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   openModal('modalAgenda');
-}
-function populateAgendaClientes(sel){
-  const clientes=load('efcrm_clientes',[]);
-  document.getElementById('fa-clienteId').innerHTML=`<option value="">Nenhum / outro</option>`+clientes.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${c.nome}</option>`).join('');
-}
-document.getElementById('saveAgendaBtn').onclick=()=>{
+};
+document.getElementById('saveAgendaBtn').onclick=async()=>{
   const titulo=document.getElementById('fa-titulo').value.trim();
   const data=document.getElementById('fa-data').value;
   if(!titulo||!data){alert('Preencha título e data.');return;}
   const clienteId=document.getElementById('fa-clienteId').value;
-  const cli=clienteId?load('efcrm_clientes',[]).find(c=>c.id===clienteId):null;
-  const agenda=load('efcrm_agenda',[]);
-  agenda.push({id:uid(),titulo,data,clienteId:clienteId||'',clienteNome:cli?cli.nome:'',descricao:document.getElementById('fa-descricao').value.trim()});
-  save('efcrm_agenda',agenda);closeModal('modalAgenda');renderAgenda();
+  const cli=clienteId?cache.clientes.find(c=>c.id===clienteId):null;
+  const btn=document.getElementById('saveAgendaBtn'); btn.disabled=true;
+  await fsAdd('agenda',{titulo,data,clienteId:clienteId||'',clienteNome:cli?cli.nome:'',descricao:document.getElementById('fa-descricao').value.trim()});
+  btn.disabled=false;
+  closeModal('modalAgenda');
 };
-function deleteAgenda(id){
-  save('efcrm_agenda',load('efcrm_agenda',[]).filter(a=>a.id!==id));renderAgenda();
+window.deleteAgenda=async(id)=>{ await fsDelete('agenda',id); };
+
+// ════════ USUÁRIOS ════════
+function renderUsuarios(){
+  if(currentUserData?.role!=='admin'){document.getElementById('mainContent').innerHTML='<div class="empty-state"><div class="empty-state-icon">🔒</div><p>Acesso restrito a administradores.</p></div>';return;}
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNovoUsuario()">+ Novo Usuário</button>`;
+  const usuarios=cache.usuarios;
+  document.getElementById('mainContent').innerHTML=`<div class="page">
+    <div class="info-box" style="margin-bottom:20px">👥 Usuários com acesso ao CRM. Administradores podem criar novos usuários e alterar perfis. Os dados são compartilhados entre todos os usuários em tempo real.</div>
+    ${usuarios.length===0?`<div class="empty-state"><div class="empty-state-icon">👤</div><p>Nenhum usuário.</p></div>`:
+      usuarios.map(u=>`<div class="user-card">
+        <div class="user-card-avatar">${(u.nome||u.email||'?').charAt(0).toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${u.nome||'—'}</div>
+          <div style="font-size:12px;color:var(--muted2)">${u.email||'—'}</div>
+        </div>
+        <span class="tag tag-${u.role==='admin'?'admin':'user'}">${u.role==='admin'?'Admin':'Usuário'}</span>
+        ${u.id!==currentUser.uid?`<button class="btn btn-ghost btn-sm" onclick="toggleRole('${u.id}','${u.role}')">${u.role==='admin'?'→ Usuário':'→ Admin'}</button>`:'<span style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace">você</span>'}
+      </div>`).join('')}
+  </div>`;
 }
+window.openNovoUsuario=()=>{
+  ['fu-nome','fu-email','fu-senha'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fu-role').value='user';
+  document.getElementById('usuarioError').style.display='none';
+  document.getElementById('usuarioSuccess').style.display='none';
+  openModal('modalUsuario');
+};
+window.toggleRole=async(id,currentRole)=>{
+  const newRole=currentRole==='admin'?'user':'admin';
+  await fsUpdate('usuarios',id,{role:newRole});
+};
+
+document.getElementById('saveUsuarioBtn').onclick=async()=>{
+  const nome=document.getElementById('fu-nome').value.trim();
+  const email=document.getElementById('fu-email').value.trim();
+  const senha=document.getElementById('fu-senha').value;
+  const role=document.getElementById('fu-role').value;
+  const err=document.getElementById('usuarioError');
+  const ok=document.getElementById('usuarioSuccess');
+  err.style.display='none'; ok.style.display='none';
+  if(!nome||!email||!senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
+  if(senha.length<6){err.textContent='Senha deve ter pelo menos 6 caracteres.';err.style.display='block';return;}
+  const btn=document.getElementById('saveUsuarioBtn'); btn.disabled=true; btn.textContent='Criando...';
+  try {
+    // Cria o usuário no Firebase Auth usando uma app secundária para não deslogar o admin
+    const secondApp = initializeApp(firebaseConfig, 'secondary-'+Date.now());
+    const secondAuth = getAuth(secondApp);
+    const cred = await createUserWithEmailAndPassword(secondAuth, email, senha);
+    await signOut(secondAuth);
+    // Salva os dados no Firestore
+    await setDoc(doc(db,'usuarios',cred.user.uid),{nome,email,role,createdAt:new Date().toISOString()});
+    ok.textContent='✓ Usuário criado com sucesso!';
+    ok.style.display='block';
+    setTimeout(()=>closeModal('modalUsuario'),1500);
+  } catch(e){
+    const msgs={'auth/email-already-in-use':'Este e-mail já está em uso.','auth/invalid-email':'E-mail inválido.'};
+    err.textContent=msgs[e.code]||('Erro: '+e.message);
+    err.style.display='block';
+  }
+  btn.disabled=false; btn.textContent='CRIAR USUÁRIO';
+};
 
 // ════════ CONFIGURAÇÕES ════════
 function renderConfiguracoes(){
-  document.getElementById('topbarActions').innerHTML='';
-  const creds=getCreds();
-  const leads=load('efcrm_leads',[]);
-  const clientes=load('efcrm_clientes',[]);
-  const projetos=load('efcrm_projetos',[]);
+  if(currentUserData?.role!=='admin'){document.getElementById('mainContent').innerHTML='<div class="empty-state"><div class="empty-state-icon">🔒</div><p>Acesso restrito a administradores.</p></div>';return;}
+  const leads=cache.leads.length;
+  const clientes=cache.clientes.length;
+  const projetos=cache.projetos.length;
   document.getElementById('mainContent').innerHTML=`<div class="page" style="max-width:560px">
     <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div><div class="section-title">Credenciais de Acesso</div><div style="font-size:12px;color:var(--muted);margin-top:4px">Usuário e senha do sistema</div></div>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-        <div><div class="detail-key">Usuário atual</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-top:4px;font-family:'DM Mono',monospace">${creds.user}</div></div>
-        <div><div class="detail-key">Senha</div><div style="font-size:16px;font-weight:600;color:var(--text);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:.2em">••••••••</div></div>
-      </div>
-      <button class="btn btn-primary" onclick="openModalConfig()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Alterar Credenciais
-      </button>
+      <div class="section-title" style="margin-bottom:16px">Conta Firebase</div>
+      <div class="cfg-row"><span class="cfg-key">USUÁRIO LOGADO</span><span class="cfg-val">${currentUser.email}</span></div>
+      <div class="cfg-row"><span class="cfg-key">PERFIL</span><span class="cfg-val" style="color:var(--accent)">${currentUserData?.role==='admin'?'Administrador':'Usuário'}</span></div>
+      <div class="cfg-row"><span class="cfg-key">PROJETO FIREBASE</span><span class="cfg-val">ef-crm-d78da</span></div>
+      <div class="cfg-row"><span class="cfg-key">BANCO</span><span class="cfg-val">Firestore (us-east1)</span></div>
     </div>
     <div class="card">
-      <div class="section-title" style="margin-bottom:16px">Sobre o Sistema</div>
-      <div class="cfg-row"><span class="cfg-key">VERSÃO</span><span class="cfg-val">1.1.0</span></div>
-      <div class="cfg-row"><span class="cfg-key">ARMAZENAMENTO</span><span class="cfg-val">localStorage</span></div>
-      <div class="cfg-row"><span class="cfg-key">LEADS</span><span class="cfg-val" style="color:var(--accent)">${leads.length}</span></div>
-      <div class="cfg-row"><span class="cfg-key">CLIENTES</span><span class="cfg-val" style="color:var(--accent)">${clientes.length}</span></div>
-      <div class="cfg-row"><span class="cfg-key">PROJETOS</span><span class="cfg-val" style="color:var(--accent)">${projetos.length}</span></div>
+      <div class="section-title" style="margin-bottom:16px">Dados no Banco</div>
+      <div class="cfg-row"><span class="cfg-key">LEADS</span><span class="cfg-val" style="color:var(--accent)">${leads}</span></div>
+      <div class="cfg-row"><span class="cfg-key">CLIENTES</span><span class="cfg-val" style="color:var(--accent)">${clientes}</span></div>
+      <div class="cfg-row"><span class="cfg-key">PROJETOS</span><span class="cfg-val" style="color:var(--accent)">${projetos}</span></div>
+      <div class="cfg-row"><span class="cfg-key">VERSÃO</span><span class="cfg-val">2.0.0 · Firebase</span></div>
     </div>
   </div>`;
 }
-function openModalConfig(){
-  ['cfg-senhaAtual','cfg-novoUser','cfg-novaSenha','cfg-confirmaSenha'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('cfgError').style.display='none';
-  document.getElementById('cfgSuccess').style.display='none';
-  openModal('modalConfig');
-}
-document.getElementById('saveCfgBtn').onclick=()=>{
-  const err=document.getElementById('cfgError'),ok=document.getElementById('cfgSuccess');
-  err.style.display='none';ok.style.display='none';
-  const sa=document.getElementById('cfg-senhaAtual').value;
-  const nu=document.getElementById('cfg-novoUser').value.trim();
-  const ns=document.getElementById('cfg-novaSenha').value;
-  const cs=document.getElementById('cfg-confirmaSenha').value;
-  const c=getCreds();
-  if(sa!==c.pass){err.textContent='✕ Senha atual incorreta.';err.style.display='block';return;}
-  if(!nu&&!ns){err.textContent='✕ Informe o novo usuário ou a nova senha.';err.style.display='block';return;}
-  if(ns&&ns!==cs){err.textContent='✕ As senhas não coincidem.';err.style.display='block';return;}
-  if(ns&&ns.length<6){err.textContent='✕ Mínimo de 6 caracteres.';err.style.display='block';return;}
-  save('efcrm_creds',{user:nu||c.user,pass:ns||c.pass});
-  ok.textContent='✓ Credenciais atualizadas!';ok.style.display='block';
-  document.getElementById('cfg-senhaAtual').value='';
-  document.getElementById('cfg-novaSenha').value='';
-  document.getElementById('cfg-confirmaSenha').value='';
-  setTimeout(()=>{closeModal('modalConfig');if(currentPage==='configuracoes')renderConfiguracoes();},1200);
-};
 
 // ════════ MODALS & PANEL ════════
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+window.openModal=(id)=>document.getElementById(id).classList.add('open');
+window.closeModal=(id)=>document.getElementById(id).classList.remove('open');
 document.querySelectorAll('[data-close]').forEach(btn=>btn.addEventListener('click',()=>closeModal(btn.dataset.close)));
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);}));
-function openPanel(){document.getElementById('slidePanel').classList.add('open');document.getElementById('panelOverlay').classList.add('open');}
-function closePanel(){document.getElementById('slidePanel').classList.remove('open');document.getElementById('panelOverlay').classList.remove('open');}
+window.openPanel=()=>{ document.getElementById('slidePanel').classList.add('open'); document.getElementById('panelOverlay').classList.add('open'); };
+window.closePanel=()=>{ document.getElementById('slidePanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open'); };
 document.getElementById('panelClose').onclick=closePanel;
 document.getElementById('panelOverlay').onclick=closePanel;
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));closePanel();}});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id)); closePanel(); } });
 
 // ════════ UTILS ════════
-function fmtDate(iso){try{return new Date(iso).toLocaleDateString('pt-BR');}catch{return iso||'—';}}
-function fmtDateTime(iso){try{const d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch{return iso||'—';}}
+function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString('pt-BR'); }catch{ return iso||'—'; } }
+function fmtDateTime(iso){ try{ const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch{ return iso||'—'; } }
 function renderTimeline(hist){
-  if(!hist||hist.length===0)return'<div style="font-size:12px;color:var(--muted)">Nenhum registro.</div>';
+  if(!hist||hist.length===0) return '<div style="font-size:12px;color:var(--muted)">Nenhum registro.</div>';
   return hist.map(h=>`<div class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-date">${fmtDateTime(h.data)}</div><div class="timeline-text">${h.texto}</div></div></div>`).join('');
 }
-function waSVG(){return`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;}
+function waSVG(){ return `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`; }
 
-updateNavBadge();
 </script>
 </body>
 </html>
