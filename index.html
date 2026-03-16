@@ -871,7 +871,7 @@ text-transform: uppercase;
   });
 
   // Step 3 validation + submit
-  document.getElementById('submitBtn').addEventListener('click', () => {
+  document.getElementById('submitBtn').addEventListener('click', async () => {
     let valid = true;
 
     const prazo = getRadioVal('prazo');
@@ -919,6 +919,33 @@ text-transform: uppercase;
       const phone = '5588999040110';
       const waUrl = `https://wa.me/${phone}?text=${msg}`;
       document.getElementById('whatsappLink').href = waUrl;
+
+      // Salvar lead no Firebase Firestore
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+        const { getFirestore, addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        const firebaseConfig = {
+          apiKey: "AIzaSyC65-p-s1F6wKMRo5Kc05vHlk2KyP9IkqE",
+          authDomain: "ef-crm-d78da.firebaseapp.com",
+          projectId: "ef-crm-d78da",
+          storageBucket: "ef-crm-d78da.firebasestorage.app",
+          messagingSenderId: "648795539910",
+          appId: "1:648795539910:web:4fc50161a83b03db114ac7"
+        };
+        const fbApp = initializeApp(firebaseConfig, 'formulario');
+        const db = getFirestore(fbApp);
+        await addDoc(collection(db, 'leads'), {
+          ...userData,
+          origem: 'formulario',
+          status: 'novo',
+          lido: false,
+          data: new Date().toISOString(),
+          historico: [],
+          anotacoes: ''
+        });
+      } catch(e) {
+        console.warn('Firebase indisponível:', e.message);
+      }
 
       // Show success
       document.getElementById('progressBar').style.display = 'none';
