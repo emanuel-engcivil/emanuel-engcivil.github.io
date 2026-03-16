@@ -782,6 +782,8 @@ window.renderLeads=renderLeads;
 
 window.openNewLead=()=>{
   ['nome','whatsapp','tipo','servico','tipologia','area','cidade','prazo','tem_arq','como_conheceu','descricao'].forEach(f=>{const el=document.getElementById('fl-'+f);if(el)el.value='';});
+  delete document.getElementById('fl-nome').dataset.editId;
+  document.getElementById('modalLeadTitle').textContent='NOVO LEAD';
   openModal('modalLead');
 };
 
@@ -796,12 +798,19 @@ document.getElementById('saveLeadBtn').onclick=async()=>{
   const prazo=document.getElementById('fl-prazo').value;
   if(!nome||!whatsapp||!tipo||!servico||!tipologia||!area||!cidade||!prazo){alert('Preencha todos os campos obrigatórios (*)');return;}
   const btn=document.getElementById('saveLeadBtn'); btn.disabled=true; btn.textContent='Salvando...';
-  await fsAdd('leads',{origem:'manual',status:'novo',lido:false,nome,whatsapp,tipo,servico,tipologia,area,cidade,prazo,
+  const editId=document.getElementById('fl-nome').dataset.editId;
+  const dados={nome,whatsapp,tipo,servico,tipologia,area,cidade,prazo,
     tem_arq:document.getElementById('fl-tem_arq').value,
     como_conheceu:document.getElementById('fl-como_conheceu').value,
-    descricao:document.getElementById('fl-descricao').value.trim(),
-    data:new Date().toISOString(),historico:[],anotacoes:''});
+    descricao:document.getElementById('fl-descricao').value.trim()};
+  if(editId){
+    await fsUpdate('leads',editId,dados);
+    delete document.getElementById('fl-nome').dataset.editId;
+  } else {
+    await fsAdd('leads',{...dados,origem:'manual',status:'novo',lido:false,data:new Date().toISOString(),historico:[],anotacoes:''});
+  }
   btn.disabled=false; btn.textContent='SALVAR LEAD';
+  document.getElementById('modalLeadTitle').textContent='NOVO LEAD';
   closeModal('modalLead');
 };
 
@@ -815,6 +824,15 @@ window.openLeadPanel=async(id)=>{
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select class="status-select" onchange="updateLeadStatus('${id}',this.value)">${Object.entries(L.status).map(([k,v])=>`<option value="${k}" ${lead.status===k?'selected':''}>${v}</option>`).join('')}</select>
         ${lead.whatsapp?`<a href="https://wa.me/${lead.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1%20${encodeURIComponent(lead.nome||'')}!" target="_blank" class="btn btn-sm btn-whatsapp">${waSVG()} WhatsApp</a>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="closePanel();editarLead('${id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmarApagarLead('${id}')">Apagar</button>
+      </div>
+      <div id="confirmApagarLead" style="display:none;background:rgba(224,82,82,.1);border:1px solid var(--danger);padding:12px;margin-top:10px">
+        <div style="font-size:13px;color:var(--text);margin-bottom:10px">⚠ Tem certeza? O lead será apagado permanentemente.</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="apagarLead('${id}')">Sim, apagar</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('confirmApagarLead').style.display='none'">Cancelar</button>
+        </div>
       </div>
     </div>
     <div class="panel-section"><div class="panel-section-title">Dados</div>
@@ -860,6 +878,32 @@ window.saveAnotacoesLead=async(id)=>{
   const v=document.getElementById('anotacoesInput').value;
   await fsUpdate('leads',id,{anotacoes:v});
   const btn=event.target; const orig=btn.textContent; btn.textContent='✓ Salvo'; setTimeout(()=>btn.textContent=orig,1500);
+};
+window.confirmarApagarLead=(id)=>{
+  const box=document.getElementById('confirmApagarLead');
+  if(box) box.style.display=box.style.display==='none'?'block':'none';
+};
+window.apagarLead=async(id)=>{
+  await fsDelete('leads',id);
+  closePanel();
+};
+window.editarLead=(id)=>{
+  const lead=cache.leads.find(l=>l.id===id); if(!lead) return;
+  // preencher modal com dados do lead
+  document.getElementById('fl-nome').value=lead.nome||'';
+  document.getElementById('fl-whatsapp').value=lead.whatsapp||'';
+  document.getElementById('fl-tipo').value=lead.tipo||'';
+  document.getElementById('fl-servico').value=lead.servico||'';
+  document.getElementById('fl-tipologia').value=lead.tipologia||'';
+  document.getElementById('fl-area').value=lead.area||'';
+  document.getElementById('fl-cidade').value=lead.cidade||'';
+  document.getElementById('fl-prazo').value=lead.prazo||'';
+  document.getElementById('fl-tem_arq').value=lead.tem_arq||'';
+  document.getElementById('fl-como_conheceu').value=lead.como_conheceu||'';
+  document.getElementById('fl-descricao').value=lead.descricao||'';
+  document.getElementById('fl-nome').dataset.editId=id;
+  document.getElementById('modalLeadTitle').textContent='EDITAR LEAD';
+  openModal('modalLead');
 };
 
 // ════════ CLIENTES ════════
