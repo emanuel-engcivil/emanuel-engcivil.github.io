@@ -252,8 +252,8 @@ tbody td.bold{color:var(--text);font-weight:500;}
 .workspace-col-title{font-size:12px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text);flex:1;min-width:0;}
 .workspace-cards{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;}
 .workspace-cards.drag-over{background:rgba(232,93,32,.06);border:1px dashed var(--accent);}
-.workspace-card{background:var(--surface2);border:1px solid var(--border);padding:10px 12px;cursor:pointer;transition:all .15s;border-radius:2px;}
-.workspace-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.3);}
+.workspace-card{background:var(--surface2);border:1px solid var(--border);padding:10px 12px;cursor:pointer;transition:all .15s;border-radius:10px;}
+.workspace-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.35);}
 .workspace-card.dragging{opacity:.4;transform:rotate(1deg);}
 .workspace-card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.3;}
 .workspace-card-desc{font-size:11px;color:var(--muted2);margin-bottom:4px;line-height:1.4;}
@@ -728,7 +728,10 @@ let currentPage = 'dashboard';
 let dashTab = 'leads';
 let dashPeriod = 30;
 let lf = {tipo:'',status:'',busca:''};
-let pjFiltro = '';
+let pjFiltro = ''; // filtra por status
+let pjPeriodo = ''; // filtra por período (igual dashboard)
+let pjCustomDe = '';
+let pjCustomAte = '';
 
 // Cache local para performance
 let cache = { leads:[], clientes:[], projetos:[], agenda:[], usuarios:[] };
@@ -1423,20 +1426,63 @@ let projetoAbertoId=null;
 let projetoAba='quadros';
 
 // ── LISTA DE PROJETOS ──
+function getPjCutoffs(){
+  if(pjPeriodo==='custom'){
+    return {
+      de: pjCustomDe ? new Date(pjCustomDe+'T00:00:00') : new Date(0),
+      ate: pjCustomAte ? new Date(pjCustomAte+'T23:59:59') : new Date()
+    };
+  }
+  if(!pjPeriodo) return null; // sem filtro de período
+  const ate=new Date();
+  const de=new Date(); de.setDate(de.getDate()-Number(pjPeriodo));
+  return {de,ate};
+}
+window.setPjPeriodo=(p)=>{ pjPeriodo=p; if(p!=='custom'){pjCustomDe='';pjCustomAte='';} renderProjetos(); };
+
 function renderProjetos(){
   projetoAbertoId=null;
   document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNovoProjeto()">+ Novo Projeto</button>`;
   const projetos=cache.projetos;
   const clientes=cache.clientes;
-  let fil=projetos.filter(p=>!pjFiltro||p.clienteId===pjFiltro);
+
+  // Filtro por período
+  const cutoffs=getPjCutoffs();
+  let fil=projetos.filter(p=>{
+    if(pjFiltro && p.status!==pjFiltro) return false;
+    if(cutoffs){
+      const dataRef=p.inicio||p.criadoEm;
+      if(!dataRef) return true;
+      const d=new Date(dataRef);
+      return d>=cutoffs.de && d<=cutoffs.ate;
+    }
+    return true;
+  });
+
   const recTotal=fil.reduce((s,p)=>s+Number(p.valor||0),0);
 
   document.getElementById('mainContent').innerHTML=`<div class="page">
-    <div class="filter-bar" style="margin-bottom:20px">
+    <div class="filter-bar" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <select onchange="pjFiltro=this.value;renderProjetos()">
-        <option value="">Todos os clientes</option>
-        ${clientes.map(c=>`<option value="${c.id}" ${pjFiltro===c.id?'selected':''}>${c.nome}</option>`).join('')}
+        <option value="">Todos os status</option>
+        <option value="elaboracao" ${pjFiltro==='elaboracao'?'selected':''}>Em elaboração</option>
+        <option value="aguardando" ${pjFiltro==='aguardando'?'selected':''}>Aguardando ARQ</option>
+        <option value="entregue" ${pjFiltro==='entregue'?'selected':''}>Entregue</option>
+        <option value="cancelado" ${pjFiltro==='cancelado'?'selected':''}>Cancelado</option>
       </select>
+      <button class="filter-btn ${!pjPeriodo?'active':''}" onclick="setPjPeriodo('')">Todos</button>
+      <button class="filter-btn ${pjPeriodo==='7'?'active':''}" onclick="setPjPeriodo('7')">7d</button>
+      <button class="filter-btn ${pjPeriodo==='30'?'active':''}" onclick="setPjPeriodo('30')">30d</button>
+      <button class="filter-btn ${pjPeriodo==='90'?'active':''}" onclick="setPjPeriodo('90')">90d</button>
+      <button class="filter-btn ${pjPeriodo==='365'?'active':''}" onclick="setPjPeriodo('365')">1 ano</button>
+      <button class="filter-btn ${pjPeriodo==='custom'?'active':''}" onclick="setPjPeriodo('custom')">Personalizado</button>
+      ${pjPeriodo==='custom'?`
+        <input type="date" value="${pjCustomDe}" onchange="pjCustomDe=this.value;renderProjetos()"
+          style="background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:5px 8px;outline:none">
+        <span style="font-size:11px;color:var(--muted)">até</span>
+        <input type="date" value="${pjCustomAte}" onchange="pjCustomAte=this.value;renderProjetos()"
+          style="background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:5px 8px;outline:none">
+      `:''}
     </div>
     <div class="grid-3" style="margin-bottom:20px">
       <div class="card card-info"><div class="card-label">Total</div><div class="card-value">${fil.length}</div></div>
