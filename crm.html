@@ -496,18 +496,24 @@ tbody td.bold{color:var(--text);font-weight:500;}
       </div>
       <div class="f-row">
         <div class="f-group"><label>Valor (R$)</label><input type="number" id="fp-valor" placeholder="0"></div>
-        <div class="f-group"><label>Prazo de entrega</label><input type="date" id="fp-prazo"></div>
+        <div class="f-group"><label>Data de início</label><input type="date" id="fp-inicio" onchange="calcularDuracao()"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label>Data de entrega</label><input type="date" id="fp-prazo" onchange="calcularDuracao()"></div>
+        <div class="f-group" style="display:flex;flex-direction:column;justify-content:flex-end">
+          <div id="fp-duracao" style="font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;padding:10px 12px;border:1px solid var(--border2);background:var(--bg);min-height:41px">— dias de projeto</div>
+        </div>
       </div>
       <div class="f-row">
         <div class="f-group"><label>Status</label>
           <select id="fp-status"><option value="elaboracao">Em elaboração</option><option value="aguardando">Aguardando ARQ</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
         <div class="f-group"><label>Progresso (%)</label><input type="number" id="fp-progresso" placeholder="0" min="0" max="100"></div>
       </div>
-    </div>
       <div style="height:1px;background:var(--border);margin:8px 0 16px"></div>
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">Controle de Parcelas</div>
       <div id="parcelasContainer"></div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarParcela()" style="margin-bottom:8px">+ Adicionar parcela</button>
+    </div>
     <div class="modal-footer"><button class="btn btn-ghost" data-close="modalProjeto">Cancelar</button><button class="btn btn-primary" id="saveProjetoBtn">SALVAR</button></div>
   </div>
 </div>
@@ -833,7 +839,9 @@ function renderDashboard(){
     return d>=cutoffDe && d<=cutoffAte;
   });
   const projetos=cache.projetos.filter(p=>{
-    const d=new Date(p.criadoEm||p.prazo||'2000-01-01');
+    const dataRef = p.inicio || p.criadoEm;
+    if(!dataRef) return false;
+    const d=new Date(dataRef);
     return d>=cutoffDe && d<=cutoffAte;
   });
   const clientes=cache.clientes.filter(c=>{
@@ -858,12 +866,19 @@ function renderDashboard(){
   const recEntregue=todosProjetos.filter(p=>p.status==='entregue').reduce((s,p)=>s+Number(p.valor||0),0);
   const recRecebido=todosProjetos.reduce((s,p)=>s+(p.parcelas||[]).filter(x=>x.pago).reduce((ss,x)=>ss+Number(x.valor||0),0),0);
   const recPendente=todosProjetos.reduce((s,p)=>s+(p.parcelas||[]).filter(x=>!x.pago).reduce((ss,x)=>ss+Number(x.valor||0),0),0);
-  // Ticket médio: só projetos criados no período (usa criadoEm do Firestore)
+  // Ticket médio: filtra por criadoEm (data real de cadastro no Firestore)
+  // Se criadoEm não existe no documento, o projeto é excluído do cálculo do período
+  // Usa data de início do projeto como referência para filtros
+  // Fallback: criadoEm (data de cadastro no Firestore)
   const projetosPeriodo = todosProjetos.filter(p=>{
-    const d = new Date(p.criadoEm||p.atualizadoEm||'2000-01-01');
+    const dataRef = p.inicio || p.criadoEm;
+    if(!dataRef) return false;
+    const d = new Date(dataRef);
     return d>=cutoffDe && d<=cutoffAte;
   });
-  const ticket=projetosPeriodo.length>0?(projetosPeriodo.reduce((s,p)=>s+Number(p.valor||0),0)/projetosPeriodo.length).toLocaleString('pt-BR',{minimumFractionDigits:0}):'-';
+  const ticket=projetosPeriodo.length>0
+    ?(projetosPeriodo.reduce((s,p)=>s+Number(p.valor||0),0)/projetosPeriodo.length).toLocaleString('pt-BR',{minimumFractionDigits:0})
+    :'—';
   const sColors={novo:'#4a9eff',contato:'#f5a623',negociacao:'#E85D20',proposta:'#8a57eb',fechado:'#2dd4a0',perdido:'#e05252'};
   const sCounts={};Object.keys(L.status).forEach(k=>sCounts[k]=leads.filter(l=>l.status===k).length);
   const maxS=Math.max(...Object.values(sCounts),1);
@@ -1207,9 +1222,20 @@ window.openClientePanel=(id)=>{
       ${projetos.length===0?'<div style="font-size:12px;color:var(--muted)">Nenhum projeto ainda.</div>':
         projetos.map(p=>{const cor=PROJ_COLORS[p.status]||'var(--accent)';return`<div style="background:var(--bg);border:1px solid var(--border);padding:12px;margin-bottom:8px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div style="font-size:13px;font-weight:600;color:var(--text);flex:1">${p.descricao}</div><span style="font-size:10px;font-family:'DM Mono',monospace;color:${cor};margin-left:8px">${lbl('statusProj',p.status)}</span></div>
-          <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap"><span style="font-size:11px;color:var(--muted2)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</span>${p.prazo?`<span style="font-size:11px;color:var(--muted2)">Entrega: ${p.prazo}</span>`:''}</div>
+          <div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="font-size:11px;color:var(--muted2)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</span>
+            ${p.inicio?`<span style="font-size:11px;color:var(--muted2)">🚀 ${fmtDateBr(p.inicio)}</span>`:''}
+            ${p.prazo?`<span style="font-size:11px;color:${new Date(p.prazo)<new Date()&&p.status!=='entregue'?'var(--danger)':'var(--muted2)'}">🏁 ${fmtDateBr(p.prazo)}</span>`:''}
+          </div>
           <div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div>
-          <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${lbl('servico',p.servico)}</span><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${p.progresso||0}%</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;flex-wrap:wrap;gap:4px">
+            <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${lbl('servico',p.servico)}</span>
+            <div style="display:flex;gap:10px">
+              ${p.inicio?`<span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">🚀 ${fmtDateBr(p.inicio)}</span>`:''}
+              ${p.prazo?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${new Date(p.prazo)<new Date()&&p.status!=='entregue'?'var(--danger)':'var(--muted)'}">🏁 ${fmtDateBr(p.prazo)}</span>`:''}
+              <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${p.progresso||0}%</span>
+            </div>
+          </div>
           ${(p.parcelas&&p.parcelas.length>0)?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
             ${p.parcelas.map(parc=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
               <span style="font-size:11px;color:var(--muted2)">${parc.descricao||'Parcela'}</span>
@@ -1271,7 +1297,10 @@ function renderProjetos(){
         <div style="font-size:12px;color:var(--muted2);margin-bottom:10px">👤 ${cli?cli.nome:'—'}</div>
         <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">
           <span style="font-size:12px;color:var(--muted2)">💰 <strong style="color:var(--text)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</strong></span>
-          ${p.prazo?`<span style="font-size:12px;color:var(--muted2)">📅 <strong style="color:var(--text)">${p.prazo}</strong></span>`:''}
+          ${p.inicio?`<span style="font-size:12px;color:var(--muted2)">🚀 Início: <strong style="color:var(--text)">${fmtDateBr(p.inicio)}</strong></span>`:''}
+          ${p.prazo?`<span style="font-size:12px;color:var(--muted2)">🏁 Entrega: <strong style="color:${new Date(p.prazo)<new Date()&&p.status!=='entregue'?'var(--danger)':'var(--text)'}">
+            ${fmtDateBr(p.prazo)}${new Date(p.prazo)<new Date()&&p.status!=='entregue'?' ⚠':''}
+          </strong></span>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="progress-track" style="flex:1"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><span style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${p.progresso||0}%</span></div>
         ${(p.parcelas&&p.parcelas.length>0)?`<div style="margin-bottom:10px;background:var(--bg);border:1px solid var(--border);padding:10px 12px">
@@ -1299,9 +1328,10 @@ window.pjFiltro=pjFiltro;
 window.renderProjetos=renderProjetos;
 
 window.openNovoProjeto=(clienteIdPreset)=>{
-  ['descricao','valor','prazo','progresso'].forEach(f=>{const el=document.getElementById('fp-'+f);if(el)el.value='';});
+  ['descricao','valor','inicio','prazo','progresso'].forEach(f=>{const el=document.getElementById('fp-'+f);if(el)el.value='';});
   document.getElementById('fp-servico').value='';
   document.getElementById('fp-status').value='elaboracao';
+  document.getElementById('fp-duracao').textContent='— dias de projeto';
   delete document.getElementById('fp-descricao').dataset.editId;
   document.getElementById('modalProjetoTitle').textContent='NOVO PROJETO';
   populateProjClientes(clienteIdPreset||'');
@@ -1314,10 +1344,12 @@ window.openEditProjeto=(id)=>{
   document.getElementById('fp-descricao').dataset.editId=id;
   document.getElementById('fp-servico').value=p.servico||'';
   document.getElementById('fp-valor').value=p.valor||'';
+  document.getElementById('fp-inicio').value=p.inicio||'';
   document.getElementById('fp-prazo').value=p.prazo||'';
   document.getElementById('fp-status').value=p.status||'elaboracao';
   document.getElementById('fp-progresso').value=p.progresso||0;
   document.getElementById('modalProjetoTitle').textContent='EDITAR PROJETO';
+  calcularDuracao();
   populateProjClientes(p.clienteId);
   loadParcelasForm(p.parcelas||[]);
   openModal('modalProjeto');
@@ -1333,6 +1365,7 @@ document.getElementById('saveProjetoBtn').onclick=async()=>{
   const dados={clienteId,descricao,
     servico:document.getElementById('fp-servico').value,
     valor:Number(document.getElementById('fp-valor').value)||0,
+    inicio:document.getElementById('fp-inicio').value,
     prazo:document.getElementById('fp-prazo').value,
     status:document.getElementById('fp-status').value,
     progresso:novoProgresso,
@@ -1803,6 +1836,20 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ document.querySel
 
 // ════════ UTILS ════════
 function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString('pt-BR'); }catch{ return iso||'—'; } }
+function fmtDateBr(iso){ try{ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }catch{ return iso||'—'; } }
+window.calcularDuracao=()=>{
+  const ini=document.getElementById('fp-inicio')?.value;
+  const fim=document.getElementById('fp-prazo')?.value;
+  const el=document.getElementById('fp-duracao'); if(!el) return;
+  if(ini&&fim){
+    const dias=Math.round((new Date(fim)-new Date(ini))/(1000*60*60*24));
+    if(dias>0) el.textContent=`${dias} dias de projeto`;
+    else if(dias===0) el.textContent='Entrega no mesmo dia';
+    else el.textContent='⚠ Entrega antes do início';
+  } else {
+    el.textContent='— dias de projeto';
+  }
+};
 function fmtDateTime(iso){ try{ const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch{ return iso||'—'; } }
 function renderTimeline(hist){
   if(!hist||hist.length===0) return '<div style="font-size:12px;color:var(--muted)">Nenhum registro.</div>';
