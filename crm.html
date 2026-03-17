@@ -1051,7 +1051,24 @@ function renderDashboard(){
       <div class="card">
         <div class="section-title" style="margin-bottom:16px">Projetos Recentes</div>
         ${projetos.length===0?'<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum projeto.</p></div>':
-          projetos.slice(0,6).map(p=>{const cli=clientes.find(c=>c.id===p.clienteId);const cor=PROJ_COLORS[p.status]||'var(--accent)';return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${p.descricao}</div><div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${cli?cli.nome:'—'}</div></div><div style="text-align:right;min-width:90px"><div style="font-size:13px;font-weight:600;color:var(--text)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</div><div style="font-size:10px;font-family:'DM Mono',monospace;color:${cor}">${lbl('statusProj',p.status)}</div></div><div style="width:80px"><div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;font-family:'DM Mono',monospace">${(p.etapas||[]).length?Math.round((p.etapas||[]).filter(e=>e.done).length/(p.etapas||[]).length*100):0}%</div></div></div>`;}).join('')}
+          projetos.slice(0,6).map(p=>{
+            const cli=clientes.find(c=>c.id===p.clienteId);
+            const cor=PROJ_COLORS[p.status]||'var(--accent)';
+            const pct=p.progresso||0;
+            return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'
+              +'<div style="flex:1;min-width:0">'
+              +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+p.descricao+'</div>'
+              +'<div style="font-size:11px;color:var(--muted2);">'+(cli?cli.nome:'—')+'</div>'
+              +'</div>'
+              +'<div style="text-align:right;min-width:90px">'
+              +'<div style="font-size:13px;font-weight:600;color:var(--text)">R$ '+Number(p.valor||0).toLocaleString('pt-BR')+'</div>'
+              +'<div style="font-size:10px;color:'+cor+'">'+lbl('statusProj',p.status)+'</div>'
+              +'</div>'
+              +'<div style="width:80px">'
+              +'<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%;background:'+cor+'"></div></div>'
+              +'<div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px">'+pct+'%</div>'
+              +'</div></div>';
+          }).join('')}
       </div>
     </div>
   </div>`;
@@ -1450,16 +1467,16 @@ function renderProjetos(){
               <span>💰 R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</span>
               ${p.inicio?`<span>🚀 ${fmtDateBr(p.inicio)}</span>`:''}
               ${p.prazo?`<span style="color:${vencido?'var(--danger)':'inherit'}">🏁 ${fmtDateBr(p.prazo)}${vencido?' ⚠':''}</span>`:''}
-              ${etapasTotal>0?`<span>☑ ${etapasDone}/${etapasTotal}</span>`:''}
+              ${p.progresso>0?`<span>✅ ${p.progresso}% concluído</span>`:''}
               ${totalCartoes>0?`<span>🗂 ${totalCartoes} cartões</span>`:''}
             </div>
           </div>
           <div style="width:120px;flex-shrink:0">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px">
               <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">ETAPAS</span>
-              <span style="font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace">${(p.etapas||[]).filter(e=>e.done).length}/${(p.etapas||[]).length||'—'}</span>
+              <span style="font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace">${p.progresso||0}%</span>
             </div>
-            <div class="progress-track"><div class="progress-fill" style="width:${(p.etapas||[]).length?Math.round((p.etapas||[]).filter(e=>e.done).length/(p.etapas||[]).length*100):0}%;background:${cor}"></div></div>
+            <div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0" onclick="event.stopPropagation()">
             <button class="btn btn-ghost btn-sm" onclick="openEditProjeto('${p.id}')">Editar</button>
@@ -1498,8 +1515,8 @@ function renderWorkspace(id, aba){
     <button class="btn btn-ghost btn-sm" onclick="openEditProjeto('${id}')">✎ Editar</button>`;
 
   // Conteúdo principal
-  const abas=['quadros','checklist','financeiro','historico'];
-  const abaLabels={quadros:'🗂 Quadros',checklist:'☑ Checklist',financeiro:'💰 Financeiro',historico:'📋 Histórico'};
+  const abas=['quadros','financeiro'];
+  const abaLabels={quadros:'🗂 Quadros',financeiro:'💰 Financeiro'};
 
   document.getElementById('mainContent').innerHTML=`<div class="page" style="overflow:visible">
 
@@ -1519,7 +1536,10 @@ function renderWorkspace(id, aba){
             <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">PROGRESSO GERAL</span>
             <span style="font-size:11px;font-family:'DM Mono',monospace;color:${cor}">${p.progresso||0}%</span>
           </div>
-          <div class="progress-track" style="height:6px"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="progress-track" style="flex:1;height:6px"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div>
+            <span style="font-size:11px;font-family:'DM Mono',monospace;color:${cor};flex-shrink:0">${p.progresso||0}% concluído</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1536,9 +1556,7 @@ function renderWorkspace(id, aba){
 
 function renderAba(p, aba){
   if(aba==='quadros') return renderAbaQuadros(p);
-  if(aba==='checklist') return renderAbaChecklist(p);
   if(aba==='financeiro') return renderAbaFinanceiro(p);
-  if(aba==='historico') return renderAbaHistorico(p);
   return '';
 }
 
@@ -1572,7 +1590,13 @@ function renderAbaQuadros(p){
               ondragstart="onDragCartao(event,'${p.id}',${qi},${ci})"
               ondragend="this.classList.remove('dragging')"
               onclick="editarCartao('${p.id}',${qi},${ci})">
-              <div class="workspace-card-title">${c.titulo}</div>
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px">
+                <input type="checkbox" ${c.concluido?'checked':''} 
+                  style="accent-color:var(--success);width:14px;height:14px;margin-top:2px;flex-shrink:0;cursor:pointer"
+                  onclick="event.stopPropagation();toggleCartaoConcluido('${p.id}',${qi},${ci},this.checked)"
+                  title="Marcar como concluído">
+                <div class="workspace-card-title" style="${c.concluido?'text-decoration:line-through;color:var(--muted)':''}">${c.titulo}</div>
+              </div>
               ${c.desc?`<div class="workspace-card-desc">${c.desc}</div>`:''}
               ${c.prazo?`<div class="workspace-card-prazo">📅 ${c.prazo}</div>`:''}
               ${c.prioridade?`<span class="workspace-card-badge" style="background:${c.prioridade==='alta'?'rgba(224,82,82,.2)':c.prioridade==='media'?'rgba(245,166,35,.2)':'rgba(45,212,160,.2)'};color:${c.prioridade==='alta'?'var(--danger)':c.prioridade==='media'?'var(--warning)':'var(--success)'}">${c.prioridade}</span>`:''}
@@ -1665,6 +1689,22 @@ function renderAbaHistorico(p){
 }
 
 // ── FUNÇÕES WORKSPACE ──
+function calcProgresso(quadros){
+  const todos=(quadros||[]).flatMap(q=>q.cartoes||[]);
+  if(!todos.length) return 0;
+  return Math.round(todos.filter(c=>c.concluido).length/todos.length*100);
+}
+
+window.toggleCartaoConcluido=async(id,qi,ci,concluido)=>{
+  qi=Number(qi); ci=Number(ci);
+  const p=cache.projetos.find(x=>x.id===id); if(!p) return;
+  const quadros=JSON.parse(JSON.stringify(p.quadros||QUADROS_PADRAO));
+  if(!quadros[qi]?.cartoes?.[ci]) return;
+  quadros[qi].cartoes[ci].concluido=concluido;
+  const progresso=calcProgresso(quadros);
+  await fsUpdate('projetos',id,{quadros,progresso});
+};
+
 window.moverProjeto=async(id,status)=>{
   await fsUpdate('projetos',id,{status});
   if(projetoAbertoId===id) renderWorkspace(id,projetoAba);
@@ -1714,7 +1754,8 @@ window.onDropCartao=async(e,projId,toQi)=>{
   if(!quadros[toQi].cartoes) quadros[toQi].cartoes=[];
   const cartao=quadros[dragCartao.qi].cartoes.splice(dragCartao.ci,1)[0];
   if(cartao) quadros[toQi].cartoes.push(cartao);
-  await fsUpdate('projetos',projId,{quadros});
+  const progresso=calcProgresso(quadros);
+  await fsUpdate('projetos',projId,{quadros,progresso});
   dragCartao={projId:null,qi:null,ci:null};
 };
 
@@ -1862,31 +1903,101 @@ window.deleteProjeto=async(id)=>{
 
 // ════════ PARCELAS ════════
 let parcelasTemp=[];
+
 window.adicionarParcela=()=>{
-  parcelasTemp.push({descricao:'',valor:0,pago:false,dataPrev:''});
+  parcelasTemp.push({descricao:'',valor:0,pago:false});
   renderParcelasForm();
 };
+
 function renderParcelasForm(){
   const c=document.getElementById('parcelasContainer'); if(!c) return;
-  c.innerHTML=parcelasTemp.map((p,i)=>`
-    <div style="background:var(--bg);border:1px solid var(--border2);padding:10px 12px;margin-bottom:8px">
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <input class="nota-input" style="flex:1;min-width:0" placeholder="Ex: Entrada 30%" value="${p.descricao}"
-          oninput="parcelasTemp[${i}].descricao=this.value">
-        <button class="btn btn-danger btn-sm" style="flex-shrink:0" onclick="parcelasTemp.splice(${i},1);renderParcelasForm()">✕</button>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="nota-input" style="flex:1" type="number" placeholder="Valor R$" value="${p.valor||''}"
-          oninput="parcelasTemp[${i}].valor=Number(this.value)">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted2);cursor:pointer;white-space:nowrap;padding:8px 12px;border:1px solid var(--border2);background:${p.pago?'rgba(45,212,160,.1)':'none'}">
-          <input type="checkbox" ${p.pago?'checked':''} onchange="parcelasTemp[${i}].pago=this.checked;renderParcelasForm()" style="accent-color:var(--success);width:14px;height:14px">
-          <span style="color:${p.pago?'var(--success)':'var(--muted2)'}">Pago</span>
-        </label>
-      </div>
-    </div>`).join('');
+  c.innerHTML='';
+
+  parcelasTemp.forEach((p,i)=>{
+    // Container da parcela
+    const wrap=document.createElement('div');
+    wrap.style.cssText='background:var(--bg);border:1px solid var(--border2);padding:10px 12px;margin-bottom:8px';
+
+    // Linha 1: descrição + botão remover
+    const row1=document.createElement('div');
+    row1.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+
+    const inputDesc=document.createElement('input');
+    inputDesc.className='nota-input';
+    inputDesc.style.cssText='flex:1;min-width:0';
+    inputDesc.placeholder='Ex: Entrada 30%';
+    inputDesc.value=p.descricao||'';
+    inputDesc.dataset.idx=i;
+    inputDesc.dataset.field='descricao';
+
+    const btnRemove=document.createElement('button');
+    btnRemove.className='btn btn-danger btn-sm';
+    btnRemove.style.flexShrink='0';
+    btnRemove.textContent='✕';
+    btnRemove.dataset.remove=i;
+
+    row1.appendChild(inputDesc);
+    row1.appendChild(btnRemove);
+
+    // Linha 2: valor + checkbox pago
+    const row2=document.createElement('div');
+    row2.style.cssText='display:flex;gap:8px;align-items:center';
+
+    const inputValor=document.createElement('input');
+    inputValor.className='nota-input';
+    inputValor.style.flex='1';
+    inputValor.type='number';
+    inputValor.placeholder='Valor R$';
+    inputValor.value=p.valor||'';
+    inputValor.dataset.idx=i;
+    inputValor.dataset.field='valor';
+
+    const label=document.createElement('label');
+    label.style.cssText='display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;white-space:nowrap;padding:8px 12px;border:1px solid var(--border2);background:'+(p.pago?'rgba(45,212,160,.1)':'none');
+
+    const chk=document.createElement('input');
+    chk.type='checkbox';
+    chk.checked=!!p.pago;
+    chk.style.cssText='accent-color:var(--success);width:14px;height:14px';
+    chk.dataset.idx=i;
+    chk.dataset.field='pago';
+
+    const spanPago=document.createElement('span');
+    spanPago.style.color=p.pago?'var(--success)':'var(--muted2)';
+    spanPago.textContent='Pago';
+
+    label.appendChild(chk);
+    label.appendChild(spanPago);
+    row2.appendChild(inputValor);
+    row2.appendChild(label);
+
+    wrap.appendChild(row1);
+    wrap.appendChild(row2);
+    c.appendChild(wrap);
+  });
+
+  // Event delegation
+  c.onclick=e=>{
+    const btn=e.target.closest('[data-remove]');
+    if(btn){ parcelasTemp.splice(Number(btn.dataset.remove),1); renderParcelasForm(); }
+  };
+  c.oninput=e=>{
+    const el=e.target; if(!el.dataset.idx) return;
+    const i=Number(el.dataset.idx);
+    if(el.dataset.field==='descricao') parcelasTemp[i].descricao=el.value;
+    if(el.dataset.field==='valor') parcelasTemp[i].valor=Number(el.value)||0;
+  };
+  c.onchange=e=>{
+    const el=e.target; if(!el.dataset.field) return;
+    if(el.dataset.field==='pago'){
+      parcelasTemp[Number(el.dataset.idx)].pago=el.checked;
+      renderParcelasForm();
+    }
+  };
 }
+
 function loadParcelasForm(parcelas){
-  parcelasTemp=[...(parcelas||[])];
+  parcelasTemp=JSON.parse(JSON.stringify(parcelas||[]));
   renderParcelasForm();
 }
 
