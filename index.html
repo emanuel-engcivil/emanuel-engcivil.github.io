@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Emanuel Freire | Engenheiro Estrutural</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- reCAPTCHA v3 — substitua SUA_SITE_KEY pela chave do google.com/recaptcha/admin -->
+<script src="https://www.google.com/recaptcha/api.js?render=6LcsAY0sAAAAALS3lGcBGqwrPoleVfy9D0nKSrsa" async defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -515,6 +517,10 @@ text-transform: uppercase;
 <div class="step active" id="step1">
   <div class="step-label"><span>01</span> / 03 — Identificação</div>
 
+  <!-- Honeypot anti-bot: oculto via CSS, bots preenchem e são bloqueados -->
+  <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off"
+    style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" aria-hidden="true">
+
   <div class="field" id="f-nome">
     <label>Seu nome <span class="req">*</span></label>
     <input type="text" id="nome" placeholder="Nome completo" autocomplete="name">
@@ -771,6 +777,11 @@ text-transform: uppercase;
 </div>
 
 <script>
+  // ── SEGURANÇA ──
+  const RECAPTCHA_SITE_KEY = '6LcsAY0sAAAAALS3lGcBGqwrPoleVfy9D0nKSrsa'; // substitua pela chave do google.com/recaptcha/admin
+  let submitCount = 0;
+  const MAX_SUBMITS = 3; // máx envios por sessão
+
   let currentStep = 1;
   const totalSteps = 3;
   const userData = {};
@@ -891,6 +902,24 @@ text-transform: uppercase;
     if (!como) { setError('f-como_conheceu'); valid = false; }
 
     if (valid) {
+      // ── Verificação anti-spam ──
+
+      // 1. Honeypot: se bot preencheu o campo oculto, bloquear silenciosamente
+      if (document.getElementById('hp-website').value) {
+        console.warn('Bot detectado (honeypot)');
+        document.getElementById('progressBar').style.display = 'none';
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('successScreen').style.display = 'block';
+        return; // não salva no Firebase
+      }
+
+      // 2. Rate limiting: bloquear após MAX_SUBMITS envios na mesma sessão
+      submitCount++;
+      if (submitCount > MAX_SUBMITS) {
+        alert('Muitas tentativas. Aguarde alguns minutos.');
+        return;
+      }
+
       userData.prazo = prazo;
       userData.tem_arq = tem_arq;
       userData.descricao = document.getElementById('descricao').value.trim();
@@ -929,9 +958,22 @@ text-transform: uppercase;
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById('successScreen').style.display = 'block';
 
-      // Salvar lead no Firebase em background
+      // Salvar lead no Firebase com reCAPTCHA v3
       (async () => {
         try {
+          // 3. reCAPTCHA v3: verificação invisível de bot
+          let recaptchaToken = null;
+          if (RECAPTCHA_SITE_KEY && RECAPTCHA_SITE_KEY !== 'SUA_SITE_KEY') {
+            try {
+              recaptchaToken = await new Promise((resolve, reject) => {
+                grecaptcha.ready(() => {
+                  grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit_lead' })
+                    .then(resolve).catch(reject);
+                });
+              });
+            } catch(e) { console.warn('reCAPTCHA indisponível:', e.message); }
+          }
+
           const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
           const { getFirestore, addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
           const firebaseConfig = {
@@ -952,7 +994,10 @@ text-transform: uppercase;
             lido: false,
             data: new Date().toISOString(),
             historico: [],
-            anotacoes: ''
+            anotacoes: '',
+            _recaptchaToken: recaptchaToken || 'nao_configurado',
+            _userAgent: navigator.userAgent.substring(0, 100),
+            _sessionSubmits: submitCount
           });
           console.log('Lead salvo no CRM com sucesso!');
         } catch(e) {
