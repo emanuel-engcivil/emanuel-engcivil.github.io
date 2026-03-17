@@ -616,7 +616,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
       <div class="f-row">
         <div class="f-group"><label>Status</label>
           <select id="fp-status"><option value="elaboracao">Em elaboração</option><option value="aguardando">Aguardando ARQ</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
-        <div class="f-group"><label>Progresso (%)</label><input type="number" id="fp-progresso" placeholder="0" min="0" max="100"></div>
+
       </div>
       <div style="height:1px;background:var(--border);margin:8px 0 16px"></div>
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">Controle de Parcelas</div>
@@ -1051,7 +1051,7 @@ function renderDashboard(){
       <div class="card">
         <div class="section-title" style="margin-bottom:16px">Projetos Recentes</div>
         ${projetos.length===0?'<div class="empty-state"><div class="empty-state-icon">📂</div><p>Nenhum projeto.</p></div>':
-          projetos.slice(0,6).map(p=>{const cli=clientes.find(c=>c.id===p.clienteId);const cor=PROJ_COLORS[p.status]||'var(--accent)';return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${p.descricao}</div><div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${cli?cli.nome:'—'}</div></div><div style="text-align:right;min-width:90px"><div style="font-size:13px;font-weight:600;color:var(--text)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</div><div style="font-size:10px;font-family:'DM Mono',monospace;color:${cor}">${lbl('statusProj',p.status)}</div></div><div style="width:80px"><div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;font-family:'DM Mono',monospace">${p.progresso||0}%</div></div></div>`;}).join('')}
+          projetos.slice(0,6).map(p=>{const cli=clientes.find(c=>c.id===p.clienteId);const cor=PROJ_COLORS[p.status]||'var(--accent)';return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${p.descricao}</div><div style="font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace">${cli?cli.nome:'—'}</div></div><div style="text-align:right;min-width:90px"><div style="font-size:13px;font-weight:600;color:var(--text)">R$ ${Number(p.valor||0).toLocaleString('pt-BR')}</div><div style="font-size:10px;font-family:'DM Mono',monospace;color:${cor}">${lbl('statusProj',p.status)}</div></div><div style="width:80px"><div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div><div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;font-family:'DM Mono',monospace">${(p.etapas||[]).length?Math.round((p.etapas||[]).filter(e=>e.done).length/(p.etapas||[]).length*100):0}%</div></div></div>`;}).join('')}
       </div>
     </div>
   </div>`;
@@ -1456,10 +1456,10 @@ function renderProjetos(){
           </div>
           <div style="width:120px;flex-shrink:0">
             <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">PROGRESSO</span>
-              <span style="font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace">${p.progresso||0}%</span>
+              <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">ETAPAS</span>
+              <span style="font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace">${(p.etapas||[]).filter(e=>e.done).length}/${(p.etapas||[]).length||'—'}</span>
             </div>
-            <div class="progress-track"><div class="progress-fill" style="width:${p.progresso||0}%;background:${cor}"></div></div>
+            <div class="progress-track"><div class="progress-fill" style="width:${(p.etapas||[]).length?Math.round((p.etapas||[]).filter(e=>e.done).length/(p.etapas||[]).length*100):0}%;background:${cor}"></div></div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0" onclick="event.stopPropagation()">
             <button class="btn btn-ghost btn-sm" onclick="openEditProjeto('${p.id}')">Editar</button>
@@ -1471,6 +1471,7 @@ function renderProjetos(){
 }
 
 // ── WORKSPACE DO PROJETO ──
+window.renderWorkspace=renderWorkspace;
 window.abrirProjetoWorkspace=(id)=>{
   projetoAbertoId=id;
   renderWorkspace(id, projetoAba);
@@ -1546,18 +1547,21 @@ function renderAbaQuadros(p){
   const quadros=p.quadros||QUADROS_PADRAO;
   return`<div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;min-height:400px;align-items:flex-start">
     ${quadros.map((q,qi)=>`
-      <div class="workspace-col" data-qi="${qi}">
+      <div class="workspace-col" data-qi="${qi}" style="border-top:2px solid ${q.cor||'var(--accent)'}">
         <div class="workspace-col-header">
-          <div style="display:flex;align-items:center;gap:8px;flex:1">
-            <div class="workspace-col-dot" style="background:${q.cor||'var(--accent)'}"></div>
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+            <input type="color" value="${q.cor||'#E85D20'}"
+              onchange="mudarCorQuadro('${p.id}',${qi},this.value)"
+              title="Mudar cor"
+              style="width:18px;height:18px;border:none;background:none;cursor:pointer;padding:0;border-radius:50%;flex-shrink:0">
             <span class="workspace-col-title" contenteditable="true"
               onblur="renomearQuadro('${p.id}',${qi},this.textContent.trim())"
               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-              style="outline:none;cursor:text">${q.nome}</span>
-            <span class="kanban-col-count">${(q.cartoes||[]).length}</span>
+              style="outline:none;cursor:text;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.nome}</span>
+            <span class="kanban-col-count" style="flex-shrink:0">${(q.cartoes||[]).length}</span>
           </div>
           <button onclick="removerQuadro('${p.id}',${qi})" title="Remover quadro"
-            style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 2px;line-height:1">×</button>
+            style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0">×</button>
         </div>
         <div class="workspace-cards drop-zone" data-qi="${qi}"
           ondragover="event.preventDefault();this.classList.add('drag-over')"
@@ -1681,27 +1685,35 @@ window.removerQuadro=async(id,qi)=>{
 window.renomearQuadro=async(id,qi,nome)=>{
   if(!nome) return;
   const p=cache.projetos.find(x=>x.id===id); if(!p) return;
-  const quadros=[...(p.quadros||QUADROS_PADRAO)];
+  const quadros=JSON.parse(JSON.stringify(p.quadros||QUADROS_PADRAO));
   quadros[qi]={...quadros[qi],nome};
+  await fsUpdate('projetos',id,{quadros});
+};
+window.mudarCorQuadro=async(id,qi,cor)=>{
+  const p=cache.projetos.find(x=>x.id===id); if(!p) return;
+  const quadros=JSON.parse(JSON.stringify(p.quadros||QUADROS_PADRAO));
+  quadros[qi]={...quadros[qi],cor};
   await fsUpdate('projetos',id,{quadros});
 };
 
 // Drag & drop de cartões
 let dragCartao={projId:null,qi:null,ci:null};
 window.onDragCartao=(e,projId,qi,ci)=>{
-  dragCartao={projId,qi,ci};
-  e.target.classList.add('dragging');
+  dragCartao={projId, qi:Number(qi), ci:Number(ci)};
+  e.currentTarget.classList.add('dragging');
 };
-window.onDropCartao=async(e,projId,qi)=>{
+window.onDropCartao=async(e,projId,toQi)=>{
   e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-  if(!dragCartao.projId||dragCartao.projId!==projId) return;
-  if(dragCartao.qi===qi&&dragCartao.ci!==null){
-    dragCartao={projId:null,qi:null,ci:null}; return; // mesmo quadro, não faz nada
-  }
+  toQi=Number(toQi);
+  if(dragCartao.projId===null||dragCartao.projId!==projId) return;
+  if(dragCartao.qi===toQi){ dragCartao={projId:null,qi:null,ci:null}; return; }
   const p=cache.projetos.find(x=>x.id===projId); if(!p) return;
   const quadros=JSON.parse(JSON.stringify(p.quadros||QUADROS_PADRAO));
+  if(!quadros[dragCartao.qi]||!quadros[toQi]) return;
+  if(!quadros[dragCartao.qi].cartoes) quadros[dragCartao.qi].cartoes=[];
+  if(!quadros[toQi].cartoes) quadros[toQi].cartoes=[];
   const cartao=quadros[dragCartao.qi].cartoes.splice(dragCartao.ci,1)[0];
-  quadros[qi].cartoes.push(cartao);
+  if(cartao) quadros[toQi].cartoes.push(cartao);
   await fsUpdate('projetos',projId,{quadros});
   dragCartao={projId:null,qi:null,ci:null};
 };
@@ -1788,7 +1800,7 @@ window.salvarHistoricoProj=async(id)=>{
 window.renderProjetos=renderProjetos;
 
 window.openNovoProjeto=(clienteIdPreset)=>{
-  ['descricao','valor','inicio','prazo','progresso'].forEach(f=>{const el=document.getElementById('fp-'+f);if(el)el.value='';});
+  ['descricao','valor','inicio','prazo'].forEach(f=>{const el=document.getElementById('fp-'+f);if(el)el.value='';}); 
   document.getElementById('fp-servico').value='';
   document.getElementById('fp-status').value='elaboracao';
   document.getElementById('fp-duracao').textContent='— dias de projeto';
@@ -1807,7 +1819,6 @@ window.openEditProjeto=(id)=>{
   document.getElementById('fp-inicio').value=p.inicio||'';
   document.getElementById('fp-prazo').value=p.prazo||'';
   document.getElementById('fp-status').value=p.status||'elaboracao';
-  document.getElementById('fp-progresso').value=p.progresso||0;
   document.getElementById('modalProjetoTitle').textContent='EDITAR PROJETO';
   calcularDuracao();
   populateProjClientes(p.clienteId);
@@ -1821,14 +1832,12 @@ document.getElementById('saveProjetoBtn').onclick=async()=>{
   const descricao=document.getElementById('fp-descricao').value.trim();
   const clienteId=document.getElementById('fp-clienteId').value;
   if(!descricao||!clienteId){alert('Selecione o cliente e informe a descrição.');return;}
-  const novoProgresso=parseInt(document.getElementById('fp-progresso').value)||0;
   const dados={clienteId,descricao,
     servico:document.getElementById('fp-servico').value,
     valor:Number(document.getElementById('fp-valor').value)||0,
     inicio:document.getElementById('fp-inicio').value,
     prazo:document.getElementById('fp-prazo').value,
     status:document.getElementById('fp-status').value,
-    progresso:novoProgresso,
     parcelas:parcelasTemp};
   const btn=document.getElementById('saveProjetoBtn'); btn.disabled=true; btn.textContent='Salvando...';
   const editId=document.getElementById('fp-descricao').dataset.editId;
@@ -1839,7 +1848,10 @@ document.getElementById('saveProjetoBtn').onclick=async()=>{
   } else { await fsAdd('projetos',dados); }
   btn.disabled=false; btn.textContent='SALVAR';
   closeModal('modalProjeto');
-  if(currentPage==='projetos')renderProjetos();
+  if(currentPage==='projetos'){
+    if(projetoAbertoId) renderWorkspace(projetoAbertoId, projetoAba);
+    else renderProjetos();
+  }
   if(currentPage==='clientes')renderClientes();
   if(currentPage==='dashboard')renderDashboard();
 };
