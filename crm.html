@@ -575,6 +575,7 @@ tbody td.bold{color:var(--text);font-weight:500;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 // ════════ CONFIG FIREBASE ════════
 const firebaseConfig = {
@@ -588,6 +589,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// App Check — garante que só seu site acessa o Firebase
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6LcsAY0sAAAAALS3lGcBGqwrPoleVfy9D0nKSrsa'),
+  isTokenAutoRefreshEnabled: true
+});
 
 // ════════ LABELS ════════
 const L = {
