@@ -427,6 +427,9 @@ tbody td.bold{color:var(--text);font-weight:500;}
         <div class="nav-item" data-page="clientes">
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1"/><path d="M5 3V2a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M1 7h14"/></svg>Clientes
         </div>
+        <div class="nav-item" data-page="parceiros">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/><path d="M1 13c0-2.5 1.8-4 4-4s4 1.5 4 4"/><path d="M11 9c2 .5 3 1.8 3 4"/></svg>Parceiros
+        </div>
         <div class="nav-item" data-page="projetos">
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h12v12H2z"/><path d="M5 6h6M5 9h4"/></svg>Projetos
         </div>
@@ -579,6 +582,44 @@ tbody td.bold{color:var(--text);font-weight:500;}
       <div style="display:flex;gap:8px">
         <button class="btn btn-danger btn-sm" id="confirmDeleteYes">Sim, remover</button>
         <button class="btn btn-ghost btn-sm" onclick="cancelConfirmDelete()">Não, cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PARCEIRO -->
+<div class="modal-overlay" id="modalParceiro">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><div class="modal-title" id="modalParceiroTitle">NOVO PARCEIRO</div><button class="modal-close" data-close="modalParceiro">✕</button></div>
+    <div class="modal-body">
+      <div class="f-row">
+        <div class="f-group"><label>Nome <span class="req">*</span></label><input type="text" id="fp2-nome" placeholder="Nome completo"></div>
+        <div class="f-group"><label>Empresa / Escritório</label><input type="text" id="fp2-empresa" placeholder="Ex: Escritório Silva Arq."></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label>WhatsApp</label><input type="tel" id="fp2-whatsapp" placeholder="(88) 99999-9999"></div>
+        <div class="f-group"><label>E-mail</label><input type="email" id="fp2-email" placeholder="email@exemplo.com"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label>Instagram</label><input type="text" id="fp2-instagram" placeholder="@usuario"></div>
+        <div class="f-group"><label>Cidade / Estado</label><input type="text" id="fp2-cidade" placeholder="Ex: Russas – CE"></div>
+      </div>
+      <div class="f-group">
+        <label>Especialidades <span class="req">*</span></label>
+        <div id="fp2-especialidades" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px"></div>
+      </div>
+      <div class="f-group"><label>Observações</label><textarea id="fp2-obs" placeholder="Notas sobre o parceiro..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="deleteParceiroBtn" style="display:none;margin-right:auto" onclick="confirmDeleteParceiro()">Remover</button>
+      <button class="btn btn-ghost" data-close="modalParceiro">Cancelar</button>
+      <button class="btn btn-primary" id="saveParceiroBtn">SALVAR</button>
+    </div>
+    <div id="confirmDeleteParceiroBox" style="display:none;background:rgba(224,82,82,.1);border:1px solid var(--danger);padding:14px 24px;">
+      <div style="font-size:13px;color:var(--text);margin-bottom:12px">⚠ Tem certeza? Esta ação não pode ser desfeita.</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-danger btn-sm" id="confirmDeleteParceiroYes">Sim, remover</button>
+        <button class="btn btn-ghost btn-sm" onclick="cancelConfirmDeleteParceiro()">Não, cancelar</button>
       </div>
     </div>
   </div>
@@ -748,7 +789,7 @@ let pjCustomAte = '';
 let pjBusca = ''; // busca por nome/cliente
 
 // Cache local para performance
-let cache = { leads:[], clientes:[], projetos:[], agenda:[], usuarios:[] };
+let cache = { leads:[], clientes:[], projetos:[], agenda:[], usuarios:[], parceiros:[] };
 
 // Unsubs para listeners em tempo real
 let unsubs = [];
@@ -871,6 +912,7 @@ function startListeners(){
 
   listen('leads','leads', ()=>{ updateNavBadge(); if(currentPage==='leads')renderLeads(); if(currentPage==='dashboard')renderDashboard(); });
   listen('clientes','clientes', ()=>{ if(currentPage==='clientes')renderClientes(); if(currentPage==='dashboard')renderDashboard(); });
+  listen('parceiros','parceiros', ()=>{ if(currentPage==='parceiros')renderParceiros(); });
   listen('projetos','projetos', ()=>{
     if(currentPage==='projetos'){
       if(projetoAbertoId) renderWorkspace(projetoAbertoId,projetoAba);
@@ -905,7 +947,7 @@ async function fsDelete(col, id){
 }
 
 // ════════ NAVIGATION ════════
-const PAGE_TITLES={dashboard:'Dashboard',leads:'Leads',clientes:'Clientes',projetos:'Projetos',agenda:'Agenda',usuarios:'Usuários',formulario:'Editor de Formulário',configuracoes:'Configurações'};
+const PAGE_TITLES={dashboard:'Dashboard',leads:'Leads',clientes:'Clientes',parceiros:'Parceiros',projetos:'Projetos',agenda:'Agenda',usuarios:'Usuários',formulario:'Editor de Formulário',configuracoes:'Configurações'};
 
 document.querySelectorAll('.nav-item').forEach(item=>{
   item.addEventListener('click',()=>{ closePanel(); renderPage(item.dataset.page); });
@@ -913,7 +955,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{
 
 function renderPage(page){
   // Checar permissão
-  const paginasLivres=['dashboard','usuarios','configuracoes'];
+  const paginasLivres=['dashboard','usuarios','configuracoes','parceiros'];
   if(!paginasLivres.includes(page) && !canAccess(page)){
     document.getElementById('mainContent').innerHTML=`<div class="empty-state"><div class="empty-state-icon">🔒</div><p>Você não tem permissão para acessar este módulo.</p><p style="font-size:12px;color:var(--muted);margin-top:8px">Contate o administrador.</p></div>`;
     document.getElementById('topbarTitle').textContent=PAGE_TITLES[page]||page;
@@ -924,7 +966,7 @@ function renderPage(page){
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.page===page));
   document.getElementById('topbarTitle').textContent=PAGE_TITLES[page]||page;
   document.getElementById('topbarActions').innerHTML='';
-  const pages={dashboard:renderDashboard,leads:renderLeads,clientes:renderClientes,projetos:renderProjetos,agenda:renderAgenda,usuarios:renderUsuarios,formulario:renderFormulario,configuracoes:renderConfiguracoes};
+  const pages={dashboard:renderDashboard,leads:renderLeads,clientes:renderClientes,parceiros:renderParceiros,projetos:renderProjetos,agenda:renderAgenda,usuarios:renderUsuarios,formulario:renderFormulario,configuracoes:renderConfiguracoes};
   pages[page]?.();
 }
 
@@ -1426,6 +1468,230 @@ window.addHistoricoCliente=async(id)=>{
 window.saveAnotacoesCliente=async(id)=>{
   const v=document.getElementById('anotacoesInput').value;
   await fsUpdate('clientes',id,{anotacoes:v});
+  const btn=event.target; const orig=btn.textContent; btn.textContent='✓ Salvo'; setTimeout(()=>btn.textContent=orig,1500);
+};
+
+// ════════ PARCEIROS ════════
+const ESPECIALIDADES_PADRAO = ['Arquitetura','Hidráulica','Elétrica','Estrutural','Fundações / Geotecnia','Execução / Obra','Topografia','Interiores','Outro'];
+
+async function getEspecialidades(){
+  try {
+    const snap = await getDoc(doc(db,'configuracoes','especialidades'));
+    if(snap.exists() && snap.data().lista) return snap.data().lista;
+  } catch(e){}
+  return [...ESPECIALIDADES_PADRAO];
+}
+async function saveEspecialidades(lista){ await fsSet('configuracoes','especialidades',{lista}); }
+
+let parcFiltroEsp = [];
+let parcBusca = '';
+
+function renderParceiros(){
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary" onclick="openNovoParceiro()">+ Novo Parceiro</button>`;
+  const parceiros = cache.parceiros;
+
+  // Filtro
+  let fil = parceiros.filter(p=>{
+    if(parcBusca){
+      const q=parcBusca.toLowerCase();
+      if(!(p.nome||'').toLowerCase().includes(q) && !(p.empresa||'').toLowerCase().includes(q)) return false;
+    }
+    if(parcFiltroEsp.length>0){
+      const esps = p.especialidades||[];
+      if(!parcFiltroEsp.every(e=>esps.includes(e))) return false;
+    }
+    return true;
+  });
+
+  // Coletar todas especialidades existentes para os filtros
+  const todasEsps = [...new Set(parceiros.flatMap(p=>p.especialidades||[]))].sort();
+
+  document.getElementById('mainContent').innerHTML=`<div class="page">
+    <div class="filter-bar" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <input type="text" placeholder="Buscar parceiro ou empresa..." value="${parcBusca}"
+        oninput="parcBusca=this.value;renderParceiros()"
+        style="min-width:200px;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;outline:none;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      ${todasEsps.map(e=>`<button class="filter-btn ${parcFiltroEsp.includes(e)?'active':''}" onclick="toggleFiltroEsp('${e}')">${e}</button>`).join('')}
+      ${parcFiltroEsp.length>0?`<button class="filter-btn" onclick="parcFiltroEsp=[];renderParceiros()" style="color:var(--danger);border-color:var(--danger)">✕ Limpar filtros</button>`:''}
+    </div>
+    ${fil.length===0?`<div class="empty-state"><div class="empty-state-icon">🤝</div><p>${parceiros.length===0?'Nenhum parceiro cadastrado.':'Nenhum parceiro encontrado com esses filtros.'}</p></div>`:
+      fil.map(p=>`<div class="client-row" style="cursor:pointer" onclick="openParceiroPanel('${p.id}')">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--accent-glow);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0">
+          ${(p.nome||'?')[0].toUpperCase()}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${p.nome}</div>
+          <div style="font-size:12px;color:var(--muted2)">${p.empresa?p.empresa+' · ':''}${p.cidade||''}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
+            ${(p.especialidades||[]).map(e=>`<span class="tag" style="background:rgba(232,93,32,.1);color:var(--accent);font-size:9px">${e}</span>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0" onclick="event.stopPropagation()">
+          ${p.whatsapp?`<a href="https://wa.me/${(p.whatsapp||'').replace(/\D/g,'')}" target="_blank" class="btn btn-sm btn-whatsapp">${waSVG()}</a>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="openEditParceiro('${p.id}')">Editar</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+window.toggleFiltroEsp=(e)=>{
+  if(parcFiltroEsp.includes(e)) parcFiltroEsp=parcFiltroEsp.filter(x=>x!==e);
+  else parcFiltroEsp.push(e);
+  renderParceiros();
+};
+
+async function renderEspecialidadesCheckboxes(selecionadas=[]){
+  const lista = await getEspecialidades();
+  const box = document.getElementById('fp2-especialidades');
+  if(!box) return;
+  box.innerHTML = lista.map(e=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted2);padding:6px 10px;border:1px solid var(--border2);transition:border-color .2s"
+      onmouseover="this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='var(--border2)'">
+      <input type="checkbox" value="${e}" ${selecionadas.includes(e)?'checked':''} style="accent-color:var(--accent);width:14px;height:14px">
+      ${e}
+    </label>`).join('') +
+    `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--accent);padding:6px 10px;border:1px dashed var(--border2)"
+      onclick="addNovaEspecialidade()">
+      <span style="font-size:16px;line-height:1">+</span> Nova especialidade
+    </label>`;
+}
+
+window.addNovaEspecialidade=async()=>{
+  const nome=prompt('Nome da nova especialidade:');
+  if(!nome||!nome.trim()) return;
+  const lista=await getEspecialidades();
+  if(lista.includes(nome.trim())){ alert('Especialidade já existe.'); return; }
+  lista.push(nome.trim());
+  await saveEspecialidades(lista);
+  // Re-render checkboxes preservando selecionadas
+  const selecionadas=getEspecialidadesSelecionadas();
+  await renderEspecialidadesCheckboxes([...selecionadas, nome.trim()]);
+};
+
+function getEspecialidadesSelecionadas(){
+  const box=document.getElementById('fp2-especialidades');
+  if(!box) return [];
+  return [...box.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
+}
+
+window.openNovoParceiro=async()=>{
+  ['nome','empresa','whatsapp','email','instagram','cidade','obs'].forEach(f=>{
+    const el=document.getElementById('fp2-'+f); if(el) el.value='';
+  });
+  delete document.getElementById('fp2-nome').dataset.editId;
+  document.getElementById('modalParceiroTitle').textContent='NOVO PARCEIRO';
+  document.getElementById('deleteParceiroBtn').style.display='none';
+  document.getElementById('confirmDeleteParceiroBox').style.display='none';
+  await renderEspecialidadesCheckboxes([]);
+  openModal('modalParceiro');
+};
+
+window.openEditParceiro=async(id)=>{
+  const p=cache.parceiros.find(x=>x.id===id); if(!p) return;
+  document.getElementById('fp2-nome').value=p.nome||'';
+  document.getElementById('fp2-nome').dataset.editId=id;
+  document.getElementById('fp2-empresa').value=p.empresa||'';
+  document.getElementById('fp2-whatsapp').value=p.whatsapp||'';
+  document.getElementById('fp2-email').value=p.email||'';
+  document.getElementById('fp2-instagram').value=p.instagram||'';
+  document.getElementById('fp2-cidade').value=p.cidade||'';
+  document.getElementById('fp2-obs').value=p.obs||'';
+  document.getElementById('modalParceiroTitle').textContent='EDITAR PARCEIRO';
+  document.getElementById('deleteParceiroBtn').style.display='';
+  document.getElementById('confirmDeleteParceiroBox').style.display='none';
+  await renderEspecialidadesCheckboxes(p.especialidades||[]);
+  openModal('modalParceiro');
+};
+
+window.confirmDeleteParceiro=()=>{ document.getElementById('confirmDeleteParceiroBox').style.display='block'; document.getElementById('deleteParceiroBtn').style.display='none'; };
+window.cancelConfirmDeleteParceiro=()=>{ document.getElementById('confirmDeleteParceiroBox').style.display='none'; document.getElementById('deleteParceiroBtn').style.display=''; };
+
+document.getElementById('confirmDeleteParceiroYes').onclick=async()=>{
+  const id=document.getElementById('fp2-nome').dataset.editId; if(!id) return;
+  await fsDelete('parceiros',id);
+  closeModal('modalParceiro');
+};
+
+document.getElementById('saveParceiroBtn').onclick=async()=>{
+  const nome=document.getElementById('fp2-nome').value.trim();
+  if(!nome){ alert('Informe o nome.'); return; }
+  const especialidades=getEspecialidadesSelecionadas();
+  const dados={
+    nome,
+    empresa:   document.getElementById('fp2-empresa').value.trim(),
+    whatsapp:  document.getElementById('fp2-whatsapp').value.trim(),
+    email:     document.getElementById('fp2-email').value.trim(),
+    instagram: document.getElementById('fp2-instagram').value.trim(),
+    cidade:    document.getElementById('fp2-cidade').value.trim(),
+    obs:       document.getElementById('fp2-obs').value.trim(),
+    especialidades,
+  };
+  const btn=document.getElementById('saveParceiroBtn');
+  btn.disabled=true; btn.textContent='Salvando...';
+  const editId=document.getElementById('fp2-nome').dataset.editId;
+  if(editId){ await fsUpdate('parceiros',editId,dados); }
+  else { await fsAdd('parceiros',{...dados,historico:[],anotacoes:''}); }
+  btn.disabled=false; btn.textContent='SALVAR';
+  closeModal('modalParceiro');
+};
+
+window.openParceiroPanel=(id)=>{
+  const p=cache.parceiros.find(x=>x.id===id); if(!p) return;
+  document.getElementById('panelName').textContent=p.nome;
+  document.getElementById('panelTags').innerHTML=(p.especialidades||[]).map(e=>`<span class="tag" style="background:rgba(232,93,32,.1);color:var(--accent);font-size:9px">${e}</span>`).join('');
+  const instaLink=p.instagram?(p.instagram.startsWith('@')?'https://instagram.com/'+p.instagram.slice(1):'https://instagram.com/'+p.instagram):'';
+  document.getElementById('panelBody').innerHTML=`
+    <div class="panel-section"><div class="panel-section-title">Ações</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${p.whatsapp?`<a href="https://wa.me/${p.whatsapp.replace(/\D/g,'')}" target="_blank" class="btn btn-sm btn-whatsapp">${waSVG()} WhatsApp</a>`:''}
+        ${p.instagram?`<a href="${instaLink}" target="_blank" class="btn btn-sm btn-ghost" style="gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          Instagram</a>`:''}
+        ${p.email?`<a href="mailto:${p.email}" class="btn btn-sm btn-ghost">✉ E-mail</a>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="closePanel();openEditParceiro('${id}')">Editar</button>
+      </div>
+    </div>
+    <div class="panel-section"><div class="panel-section-title">Dados</div>
+      <div class="detail-grid">
+        ${p.empresa?`<div><div class="detail-key">Empresa</div><div class="detail-val">${p.empresa}</div></div>`:''}
+        ${p.whatsapp?`<div><div class="detail-key">WhatsApp</div><div class="detail-val">${p.whatsapp}</div></div>`:''}
+        ${p.email?`<div><div class="detail-key">E-mail</div><div class="detail-val">${p.email}</div></div>`:''}
+        ${p.instagram?`<div><div class="detail-key">Instagram</div><div class="detail-val">${p.instagram}</div></div>`:''}
+        ${p.cidade?`<div><div class="detail-key">Cidade</div><div class="detail-val">${p.cidade}</div></div>`:''}
+      </div>
+      ${p.obs?`<div style="margin-top:10px"><div class="detail-key" style="margin-bottom:4px">Observações</div><div style="font-size:13px;color:var(--muted2);line-height:1.6">${p.obs}</div></div>`:''}
+    </div>
+    <div class="panel-section"><div class="panel-section-title">Especialidades</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${(p.especialidades||[]).length===0?'<div style="font-size:12px;color:var(--muted)">Nenhuma especialidade registrada.</div>':
+          (p.especialidades||[]).map(e=>`<span class="tag" style="background:rgba(232,93,32,.12);color:var(--accent)">${e}</span>`).join('')}
+      </div>
+    </div>
+    <div class="panel-section"><div class="panel-section-title">Histórico</div>
+      <div class="timeline" id="panelTimeline">${renderTimeline(p.historico||[])}</div>
+      <div class="nota-form" style="margin-top:14px">
+        <input class="nota-input" style="flex:1" type="text" id="novaNotaInput" placeholder="Registrar contato...">
+        <button class="btn btn-primary btn-sm" onclick="addHistoricoParceiro('${id}')">+</button>
+      </div>
+    </div>
+    <div class="panel-section"><div class="panel-section-title">Anotações</div>
+      <textarea class="nota-input" style="width:100%;min-height:80px;resize:vertical;display:block" id="anotacoesInput">${p.anotacoes||''}</textarea>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="saveAnotacoesParceiro('${id}')">Salvar anotações</button>
+    </div>`;
+  openPanel();
+};
+
+window.addHistoricoParceiro=async(id)=>{
+  const inp=document.getElementById('novaNotaInput'); const t=inp.value.trim(); if(!t) return;
+  const p=cache.parceiros.find(x=>x.id===id); if(!p) return;
+  const hist=[...(p.historico||[]),{data:new Date().toISOString(),texto:t}];
+  await fsUpdate('parceiros',id,{historico:hist}); inp.value='';
+  const tl=document.getElementById('panelTimeline'); if(tl) tl.innerHTML=renderTimeline(hist);
+};
+window.saveAnotacoesParceiro=async(id)=>{
+  const v=document.getElementById('anotacoesInput').value;
+  await fsUpdate('parceiros',id,{anotacoes:v});
   const btn=event.target; const orig=btn.textContent; btn.textContent='✓ Salvo'; setTimeout(()=>btn.textContent=orig,1500);
 };
 
